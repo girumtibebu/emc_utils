@@ -5,10 +5,10 @@ window.emc_utils = window.emc_utils || {};
     const CSS = `
         /* Espresso Section Row */
         .grid-row.emc-grid-section-row {
-            background-color: var(--surface-gray-2, #f9fafb) !important;
-            border-top: 1px solid var(--outline-gray-2, #e5e7eb) !important;
-            border-bottom: 1px solid var(--outline-gray-2, #e5e7eb) !important;
-            border-left: 3px solid var(--surface-gray-10, #374151) !important;
+            background-color: var(--surface-gray-2, #f8fafc) !important;
+            border-top: 1px solid var(--outline-gray-2, #e2e8f0) !important;
+            border-bottom: 1px solid var(--outline-gray-2, #e2e8f0) !important;
+            border-left: 3px solid var(--surface-gray-10, #334155) !important;
             margin-top: 2px !important;
             margin-bottom: 2px !important;
             min-height: 38px !important;
@@ -68,16 +68,23 @@ window.emc_utils = window.emc_utils || {};
 
     frappe.dom.set_style(CSS, "emc_utils_style");
 
-    // Helper: determine if a grid supports sections
+    const SUPPORTED_TABLES = [
+        "Quotation Item",
+        "Sales Order Item",
+        "Sales Invoice Item",
+        "Purchase Order Item",
+        "Purchase Invoice Item",
+        "Delivery Note Item",
+        "Purchase Receipt Item",
+    ];
+
     emc.grid_supports_sections = function (grid) {
         if (!grid) return false;
         const dt = grid.doctype || grid.df?.options;
-        if (dt && frappe.meta?.has_field && frappe.meta.has_field(dt, "is_section")) {
-            return true;
-        }
-        if (grid.docfields && grid.docfields.some((df) => df.fieldname === "is_section")) {
-            return true;
-        }
+        if (dt && SUPPORTED_TABLES.includes(dt)) return true;
+        if (grid.df?.fieldname === "items") return true;
+        if (dt && frappe.meta?.has_field && frappe.meta.has_field(dt, "is_section")) return true;
+        if (grid.docfields && grid.docfields.some((df) => df.fieldname === "is_section")) return true;
         return false;
     };
 
@@ -113,7 +120,6 @@ window.emc_utils = window.emc_utils || {};
 
             let $cell = $row.find(".emc-section-cell");
             if (!$cell.length) {
-                // Generate Espresso Badge using frappe.ui.badge or native markup
                 let badge_html = "";
                 if (frappe.ui?.badge?.html) {
                     badge_html = frappe.ui.badge.html({
@@ -166,13 +172,12 @@ window.emc_utils = window.emc_utils || {};
                     }
                 });
         } else {
-            // Remove section artifacts if row is regular or was repurposed
             $row.removeClass("emc-grid-section-row");
             $row.find(".emc-section-cell").remove();
         }
     };
 
-    // 3. Add Section button (Frappe UI / Espresso button, synced directly with toolbar)
+    // 3. Add Section button (Frappe UI / Espresso button)
     emc.setup_grid_buttons = function (grid) {
         if (!grid || !grid.wrapper) return;
         if (!emc.grid_supports_sections(grid)) return;
@@ -213,14 +218,17 @@ window.emc_utils = window.emc_utils || {};
             });
         }
 
-        // Visibility sync based directly on grid editable state and selected rows
-        const is_editable = grid.is_editable && grid.is_editable();
-        const cannot_add = grid.cannot_add_rows || (grid.df && grid.df.cannot_add_rows);
-        const has_selected = grid.get_selected_children && grid.get_selected_children().length > 0;
-
-        const should_hide = !is_editable || cannot_add || has_selected;
-        $btn.toggleClass("hidden", Boolean(should_hide));
-        $btn.toggleClass("d-none", !is_editable);
+        // Direct class sync with Add row
+        const $add_row = $grid_buttons.find(".grid-add-row");
+        if ($add_row.length) {
+            if ($add_row.hasClass("hidden") || $add_row.hasClass("d-none")) {
+                $btn.addClass("hidden");
+            } else {
+                $btn.removeClass("hidden d-none");
+            }
+        } else {
+            $btn.removeClass("hidden d-none");
+        }
     };
 
     // 4. Add section row with safe default values
@@ -252,7 +260,7 @@ window.emc_utils = window.emc_utils || {};
         }
     };
 
-    // 5. Permanent GridRow and Grid prototype hooks (guarantees buttons & rows persist)
+    // 5. Permanent GridRow and Grid prototype hooks
     emc.install_patches = function () {
         emc.patch_check_mandatory();
 
@@ -286,17 +294,24 @@ window.emc_utils = window.emc_utils || {};
         }
     };
 
-    // 6. Form setup entrypoint
+    // 6. Direct grid setup helper
+    emc.setup_grid = function (grid) {
+        if (!grid) return;
+        emc.install_patches();
+        emc.setup_grid_buttons(grid);
+        if (grid.grid_rows) {
+            grid.grid_rows.forEach((r) => emc.format_row(r));
+        }
+    };
+
+    // 7. Form setup entrypoint
     emc.setup_form_grid_sections = function (frm) {
         if (!frm || !frm.fields) return;
         emc.install_patches();
 
         frm.fields.forEach((field) => {
             if (field.df?.fieldtype === "Table" && field.grid) {
-                emc.setup_grid_buttons(field.grid);
-                if (field.grid.grid_rows) {
-                    field.grid.grid_rows.forEach((r) => emc.format_row(r));
-                }
+                emc.setup_grid(field.grid);
             }
         });
     };
