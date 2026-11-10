@@ -53,14 +53,14 @@ def patch_accounts_controller():
     except ImportError:
         pass
 
-# Initialize patches immediately on import
+# Initialize patches immediately
 patch_all()
 
 def boot_session(bootinfo):
     patch_all()
 
 def before_validate_sections(doc, method=None):
-    """Zero out amounts and sync titles for section rows on any child table."""
+    """Ensure safe defaults, zero amounts, and sync titles for section rows."""
     patch_all()
 
     meta = frappe.get_meta(doc.doctype)
@@ -70,7 +70,13 @@ def before_validate_sections(doc, method=None):
         child_rows = doc.get(tf.fieldname) or []
         for row in child_rows:
             if getattr(row, "is_section", 0):
-                # Sync section title to standard descriptive fields
+                # Ensure harmless UOM & conversion factor so standard validations never complain
+                if hasattr(row, "uom") and not row.uom:
+                    row.uom = "Unit"
+                if hasattr(row, "conversion_factor") and not row.conversion_factor:
+                    row.conversion_factor = 1.0
+
+                # Sync section title to description and item_name
                 title = (getattr(row, "section_title", None) or getattr(row, "item_name", "") or "").strip()
                 if title:
                     row.section_title = title

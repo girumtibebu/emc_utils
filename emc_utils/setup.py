@@ -11,6 +11,14 @@ SUPPORTED_CHILD_DOCTYPES = [
     "Purchase Receipt Item",
 ]
 
+# Fields that standard ERPNext marks reqd: 1 on child item rows
+SECTION_CONDITIONAL_MANDATORY_FIELDS = [
+    "item_code",
+    "uom",
+    "qty",
+    "conversion_factor",
+]
+
 def after_install():
     setup_custom_fields()
     setup_property_setters()
@@ -46,14 +54,18 @@ def setup_custom_fields():
 
 def setup_property_setters():
     for dt in SUPPORTED_CHILD_DOCTYPES:
-        if frappe.db.exists("DocType", dt):
-            meta = frappe.get_meta(dt)
-            df = meta.get_field("item_code")
-            if df and df.reqd:
+        if not frappe.db.exists("DocType", dt):
+            continue
+
+        meta = frappe.get_meta(dt)
+        for fieldname in SECTION_CONDITIONAL_MANDATORY_FIELDS:
+            df = meta.get_field(fieldname)
+            if df and (df.reqd or df.mandatory_depends_on):
+                # Ensure reqd is 0 and mandatory_depends_on evaluates eval:!doc.is_section
                 frappe.make_property_setter({
                     "doctype_or_field": "DocField",
                     "doctype": dt,
-                    "field_name": "item_code",
+                    "fieldname": fieldname,
                     "property": "reqd",
                     "value": "0",
                     "property_type": "Check",
@@ -61,7 +73,7 @@ def setup_property_setters():
                 frappe.make_property_setter({
                     "doctype_or_field": "DocField",
                     "doctype": dt,
-                    "field_name": "item_code",
+                    "fieldname": fieldname,
                     "property": "mandatory_depends_on",
                     "value": "eval:!doc.is_section",
                     "property_type": "Data",
