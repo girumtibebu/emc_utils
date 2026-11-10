@@ -57,14 +57,7 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
         }
         .btn-add-section {
-            font-weight: 600 !important;
-            background-color: #f8fafc !important;
-            border: 1px solid #cbd5e1 !important;
-            color: #1e293b !important;
             margin-left: 6px !important;
-        }
-        .btn-add-section:hover {
-            background-color: #e2e8f0 !important;
         }
     `;
 
@@ -156,17 +149,20 @@
         const grid = frm.fields_dict[table_fieldname].grid;
         if (!grid || !grid.wrapper) return;
 
-        // Add Section button next to Add row
+        // Place button after "Add multiple" if present, otherwise after "Add row"
+        const $add_multiple_btn = grid.wrapper.find(".grid-add-multiple-rows");
         const $add_row_btn = grid.wrapper.find(".grid-add-row");
-        if ($add_row_btn.length && !grid.wrapper.find(".btn-add-section").length) {
+        const $anchor = $add_multiple_btn.length ? $add_multiple_btn : $add_row_btn;
+
+        if ($anchor.length && !grid.wrapper.find(".btn-add-section").length) {
             const $btn = $(`
-                <button class="btn btn-xs btn-default btn-add-section" type="button">
-                    <svg class="icon icon-sm" style="margin-right: 4px; vertical-align: -2px;"><use href="#icon-layer"></use></svg>
+                <button class="btn btn-xs btn-secondary btn-add-section" type="button">
+                    <svg class="icon icon-xs" style="margin-right: 3px; vertical-align: -1px;"><use href="#icon-layer"></use></svg>
                     ${__("Add Section")}
                 </button>
             `);
 
-            $btn.insertAfter($add_row_btn);
+            $btn.insertAfter($anchor);
             $btn.on("click", function (e) {
                 e.preventDefault();
                 e.stopPropagation();

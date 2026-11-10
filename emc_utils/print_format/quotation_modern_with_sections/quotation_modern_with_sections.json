@@ -1,0 +1,23 @@
+{
+ "align_labels_right": 0,
+ "custom_format": 1,
+ "disabled": 0,
+ "doc_type": "Quotation",
+ "doctype": "Print Format",
+ "font": "Inter",
+ "font_size": 13,
+ "format_data": null,
+ "line_breaks": 0,
+ "margin_bottom": 12.0,
+ "margin_left": 12.0,
+ "margin_right": 12.0,
+ "margin_top": 12.0,
+ "module": "EMC Utils",
+ "name": "Quotation Modern with Sections",
+ "page_number": "Bottom Right",
+ "print_format_builder": 0,
+ "print_format_type": "Jinja",
+ "raw_printing": 0,
+ "show_section_headings": 0,
+ "standard": "Yes"
+}
