@@ -58,6 +58,11 @@ patch_all()
 
 def boot_session(bootinfo):
     patch_all()
+    try:
+        from emc_utils.company_scope import boot_session as company_boot_session
+        company_boot_session(bootinfo)
+    except Exception:
+        pass
 
 def before_validate_sections(doc, method=None):
     """Ensure safe defaults, zero amounts, and sync titles for section rows."""
