@@ -1,120 +1,87 @@
-frappe.provide("emc_utils");
+// EMC Utilities - Quotation & Sales Order Child Table Section Enhancement
 
-(function() {
-    console.log("[emc_utils] Initializing EMC Utilities module...");
-
-    emc_utils.install_patches = function() {
-        if (!window.frappe || !frappe.ui || !frappe.ui.form) return false;
-
-        if (frappe.ui.form.Grid && !frappe.ui.form.Grid.__emc_patched) {
-            const orig_refresh = frappe.ui.form.Grid.prototype.refresh;
-            frappe.ui.form.Grid.prototype.refresh = function() {
-                orig_refresh.apply(this, arguments);
-                emc_utils.setup_grid_buttons(this);
-            };
-            frappe.ui.form.Grid.__emc_patched = true;
-            console.log("[emc_utils] Grid.prototype.refresh patched.");
+(function () {
+    const CSS = `
+        .grid-row.emc-grid-section-row {
+            background-color: #f1f5f9 !important;
+            border-top: 2px solid #94a3b8 !important;
+            border-bottom: 2px solid #94a3b8 !important;
+            border-left: 4px solid #1e293b !important;
+            margin-top: 3px !important;
+            margin-bottom: 3px !important;
+            min-height: 38px !important;
         }
-
-        if (frappe.ui.form.GridRow && !frappe.ui.form.GridRow.__emc_patched) {
-            const orig_render_row = frappe.ui.form.GridRow.prototype.render_row;
-            frappe.ui.form.GridRow.prototype.render_row = function(refresh) {
-                const res = orig_render_row.apply(this, arguments);
-                if (this.doc && this.doc.is_section) {
-                    emc_utils.render_section_row(this);
-                }
-                return res;
-            };
-            frappe.ui.form.GridRow.__emc_patched = true;
-            console.log("[emc_utils] GridRow.prototype.render_row patched.");
+        .emc-grid-section-row .emc-hidden-col {
+            display: none !important;
         }
-
-        return true;
-    };
-
-    emc_utils.setup_form_grid_sections = function(frm) {
-        if (!frm || !frm.fields) return;
-        emc_utils.install_patches();
-
-        frm.fields.forEach(field => {
-            if (field.df && field.df.fieldtype === "Table" && field.grid) {
-                emc_utils.setup_grid_buttons(field.grid);
-
-                // Format existing section rows
-                if (field.grid.grid_rows) {
-                    field.grid.grid_rows.forEach(grid_row => {
-                        if (grid_row && grid_row.doc && grid_row.doc.is_section) {
-                            emc_utils.render_section_row(grid_row);
-                        }
-                    });
-                }
-            }
-        });
-    };
-
-    emc_utils.setup_grid_buttons = function(grid) {
-        if (!grid || !grid.wrapper || !grid.docfields) return;
-
-        const has_section = grid.docfields.some(df => df.fieldname === "is_section");
-        if (!has_section) return;
-
-        const is_editable = grid.is_editable ? grid.is_editable() : true;
-        if (!is_editable || grid.cannot_add_rows) return;
-
-        // Use Frappe native add_custom_button API
-        const btn_label = __("Add Section");
-        const $btn = grid.add_custom_button(btn_label, function() {
-            emc_utils.add_section_to_grid(grid);
-        });
-
-        if ($btn) {
-            $btn.addClass("btn-add-section")
-                .html(`<svg class="icon icon-sm" style="margin-right: 4px; vertical-align: -2px;"><use href="#icon-layer"></use></svg> ${btn_label}`)
-                .css({ "font-weight": "600", "color": "#1e293b", "background-color": "#f1f5f9" });
-
-            // Ensure it sits right next to the standard Add Row button
-            const $add_row_btn = grid.wrapper.find(".grid-add-row");
-            if ($add_row_btn.length && $btn.parent().length) {
-                $btn.insertAfter($add_row_btn);
-            }
+        .emc-grid-section-row .emc-section-cell {
+            flex: 1 1 auto !important;
+            display: flex !important;
+            align-items: center !important;
+            padding: 4px 10px !important;
         }
-    };
-
-    emc_utils.add_section_to_grid = function(grid) {
-        const new_row = grid.add_new_row(null, null, false, null, true);
-        if (new_row) {
-            frappe.model.set_value(new_row.doctype, new_row.name, "is_section", 1);
-            frappe.model.set_value(new_row.doctype, new_row.name, "section_title", __("New Section"));
-            frappe.model.set_value(new_row.doctype, new_row.name, "item_name", __("New Section"));
-            frappe.model.set_value(new_row.doctype, new_row.name, "qty", 0);
-            frappe.model.set_value(new_row.doctype, new_row.name, "rate", 0);
-            frappe.model.set_value(new_row.doctype, new_row.name, "amount", 0);
-
-            grid.refresh();
-
-            setTimeout(() => {
-                const grid_row = grid.grid_rows_by_docname && grid.grid_rows_by_docname[new_row.name];
-                if (grid_row && grid_row.row) {
-                    emc_utils.render_section_row(grid_row);
-                    const $inp = grid_row.row.find(".emc-section-input");
-                    if ($inp.length) {
-                        $inp.focus().select();
-                    }
-                }
-            }, 80);
+        .emc-section-inner {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
         }
-    };
+        .emc-section-tag {
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.8px !important;
+            padding: 2px 7px !important;
+            border-radius: 4px !important;
+            background: #334155 !important;
+            color: #ffffff !important;
+            text-transform: uppercase !important;
+            user-select: none !important;
+            flex-shrink: 0 !important;
+        }
+        .emc-section-input {
+            font-size: 13.5px !important;
+            font-weight: 600 !important;
+            color: #0f172a !important;
+            background: transparent !important;
+            border: 1px dashed transparent !important;
+            box-shadow: none !important;
+            height: 28px !important;
+            padding: 2px 8px !important;
+            width: 100% !important;
+            transition: all 0.15s ease-in-out !important;
+        }
+        .emc-section-input:focus,
+        .emc-section-input:hover {
+            background: #ffffff !important;
+            border: 1px solid #2563eb !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        }
+        .btn-add-section {
+            font-weight: 600 !important;
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #1e293b !important;
+            margin-left: 6px !important;
+        }
+        .btn-add-section:hover {
+            background-color: #e2e8f0 !important;
+        }
+    `;
 
-    emc_utils.render_section_row = function(grid_row) {
+    frappe.dom.set_style(CSS, "emc_utils_style");
+
+    function format_section_row(grid_row) {
         if (!grid_row || !grid_row.row || !grid_row.doc) return;
+        if (!grid_row.doc.is_section) return;
 
-        grid_row.row.addClass("emc-grid-section-row");
+        const $row = grid_row.row;
+        $row.addClass("emc-grid-section-row");
 
-        // Hide data columns, keep sortable drag handles and check
-        grid_row.row.find(".col:not(.row-check):not(.row-index):not(.emc-section-cell):not(.btn-open-row-col)")
+        // Hide regular data columns, keep checkbox and row number
+        $row.find(".col:not(.row-check):not(.row-index):not(.emc-section-cell):not(.btn-open-row-col)")
             .addClass("emc-hidden-col");
 
-        let $cell = grid_row.row.find(".emc-section-cell");
+        let $cell = $row.find(".emc-section-cell");
         if (!$cell.length) {
             $cell = $(`
                 <div class="col emc-section-cell">
@@ -125,20 +92,20 @@ frappe.provide("emc_utils");
                 </div>
             `);
 
-            const $row_index = grid_row.row.find(".row-index");
+            const $row_index = $row.find(".row-index");
             if ($row_index.length) {
                 $cell.insertAfter($row_index);
             } else {
-                grid_row.row.append($cell);
+                $row.append($cell);
             }
         }
 
-        const current_title = grid_row.doc.section_title || grid_row.doc.item_name || "";
+        const title = grid_row.doc.section_title || grid_row.doc.item_name || "";
         const $input = $cell.find(".emc-section-input");
-        $input.val(current_title);
+        $input.val(title);
 
         $input.off("change.emc blur.emc keydown.emc")
-            .on("change.emc blur.emc", function() {
+            .on("change.emc blur.emc", function () {
                 const val = $(this).val();
                 if (grid_row.doc.section_title !== val) {
                     frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "section_title", val);
@@ -146,28 +113,99 @@ frappe.provide("emc_utils");
                     frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "description", val);
                 }
             })
-            .on("keydown.emc", function(ev) {
-                if (ev.key === "Enter") {
+            .on("keydown.emc", function (e) {
+                if (e.key === "Enter") {
                     $(this).blur();
-                    ev.preventDefault();
+                    e.preventDefault();
                 }
             });
-    };
+    }
 
-    // Install immediately if ready, or on lifecycle triggers
-    emc_utils.install_patches();
+    function format_all_rows(grid) {
+        if (!grid || !grid.grid_rows) return;
+        grid.grid_rows.forEach(row => format_section_row(row));
+    }
 
-    $(document).on("form-refresh", function(e, frm) {
-        emc_utils.setup_form_grid_sections(frm);
-    });
+    function add_section(grid) {
+        const row = grid.add_new_row(null, null, false, null, true);
+        if (row) {
+            frappe.model.set_value(row.doctype, row.name, "is_section", 1);
+            frappe.model.set_value(row.doctype, row.name, "section_title", __("New Section"));
+            frappe.model.set_value(row.doctype, row.name, "item_name", __("New Section"));
+            frappe.model.set_value(row.doctype, row.name, "qty", 0);
+            frappe.model.set_value(row.doctype, row.name, "rate", 0);
+            frappe.model.set_value(row.doctype, row.name, "amount", 0);
 
-    $(document).on("grid-row-render", function(e, grid_row) {
-        if (grid_row && grid_row.doc && grid_row.doc.is_section) {
-            emc_utils.render_section_row(grid_row);
+            grid.refresh();
+
+            setTimeout(() => {
+                const grid_row = grid.grid_rows_by_docname && grid.grid_rows_by_docname[row.name];
+                if (grid_row && grid_row.row) {
+                    format_section_row(grid_row);
+                    const $inp = grid_row.row.find(".emc-section-input");
+                    if ($inp.length) {
+                        $inp.focus().select();
+                    }
+                }
+            }, 80);
+        }
+    }
+
+    function setup_grid(frm, table_fieldname = "items") {
+        if (!frm || !frm.fields_dict || !frm.fields_dict[table_fieldname]) return;
+        const grid = frm.fields_dict[table_fieldname].grid;
+        if (!grid || !grid.wrapper) return;
+
+        // Add Section button next to Add row
+        const $add_row_btn = grid.wrapper.find(".grid-add-row");
+        if ($add_row_btn.length && !grid.wrapper.find(".btn-add-section").length) {
+            const $btn = $(`
+                <button class="btn btn-xs btn-default btn-add-section" type="button">
+                    <svg class="icon icon-sm" style="margin-right: 4px; vertical-align: -2px;"><use href="#icon-layer"></use></svg>
+                    ${__("Add Section")}
+                </button>
+            `);
+
+            $btn.insertAfter($add_row_btn);
+            $btn.on("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                add_section(grid);
+            });
+        }
+
+        // Format any existing section rows
+        format_all_rows(grid);
+
+        // Hook render_result_rows so sorting and refreshing keeps sections styled
+        if (!grid.__emc_hooked) {
+            const orig_render = grid.render_result_rows;
+            grid.render_result_rows = function () {
+                orig_render.apply(this, arguments);
+                format_all_rows(this);
+            };
+            grid.__emc_hooked = true;
+        }
+    }
+
+    // Export helpers
+    window.emc_utils_setup_grid = setup_grid;
+
+    frappe.ui.form.on("Quotation", {
+        refresh(frm) {
+            setup_grid(frm, "items");
+        },
+        items_on_form_rendered(frm) {
+            setup_grid(frm, "items");
         }
     });
 
-    $(document).on("app_ready startup", function() {
-        emc_utils.install_patches();
+    frappe.ui.form.on("Sales Order", {
+        refresh(frm) {
+            setup_grid(frm, "items");
+        },
+        items_on_form_rendered(frm) {
+            setup_grid(frm, "items");
+        }
     });
 })();
