@@ -40,11 +40,12 @@
             font-weight: 600 !important;
         }
 
-        /* Clean Espresso-compatible Input */
+        /* Clean Espresso-compatible Input with Guaranteed High-Contrast Visibility */
         .emc-section-input {
             font-size: 13px !important;
             font-weight: 600 !important;
-            color: var(--ink-base, #1e293b) !important;
+            color: var(--text-color, #111827) !important;
+            -webkit-text-fill-color: var(--text-color, #111827) !important;
             text-align: left !important;
             background: transparent !important;
             border: 1px dashed transparent !important;
@@ -58,9 +59,24 @@
 
         .emc-section-input:focus,
         .emc-section-input:hover {
-            background: var(--surface-white, #ffffff) !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
             border: 1px solid var(--outline-primary, var(--primary-color, #2563eb)) !important;
             box-shadow: var(--shadow-xs, 0 1px 2px rgba(0,0,0,0.05)) !important;
+        }
+
+        [data-theme="dark"] .emc-section-input,
+        .dark .emc-section-input {
+            color: #f8fafc !important;
+            -webkit-text-fill-color: #f8fafc !important;
+        }
+
+        [data-theme="dark"] .emc-section-input:focus,
+        .dark .emc-section-input:focus {
+            background: #1e293b !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
         }
     `;
 
@@ -134,7 +150,13 @@
                 $input.val(title);
             }
 
-            $input.off("change.emc blur.emc keydown.emc")
+            $input.off("input.emc change.emc blur.emc keydown.emc")
+                .on("input.emc", function () {
+                    const val = $(this).val();
+                    grid_row.doc.section_title = val;
+                    grid_row.doc.item_name = val;
+                    grid_row.doc.description = val;
+                })
                 .on("change.emc blur.emc", function () {
                     const val = $(this).val();
                     if (grid_row.doc.section_title !== val) {

@@ -42,11 +42,12 @@ window.emc_utils = window.emc_utils || {};
             font-weight: 600 !important;
         }
 
-        /* Clean Espresso-compatible Input */
+        /* Clean Espresso-compatible Input with Guaranteed High-Contrast Visibility */
         .emc-section-input {
             font-size: 13px !important;
             font-weight: 600 !important;
-            color: var(--ink-base, #1e293b) !important;
+            color: var(--text-color, #111827) !important;
+            -webkit-text-fill-color: var(--text-color, #111827) !important;
             text-align: left !important;
             background: transparent !important;
             border: 1px dashed transparent !important;
@@ -60,33 +61,28 @@ window.emc_utils = window.emc_utils || {};
 
         .emc-section-input:focus,
         .emc-section-input:hover {
-            background: var(--surface-white, #ffffff) !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
             border: 1px solid var(--outline-primary, var(--primary-color, #2563eb)) !important;
             box-shadow: var(--shadow-xs, 0 1px 2px rgba(0,0,0,0.05)) !important;
+        }
+
+        [data-theme="dark"] .emc-section-input,
+        .dark .emc-section-input {
+            color: #f8fafc !important;
+            -webkit-text-fill-color: #f8fafc !important;
+        }
+
+        [data-theme="dark"] .emc-section-input:focus,
+        .dark .emc-section-input:focus {
+            background: #1e293b !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
         }
     `;
 
     frappe.dom.set_style(CSS, "emc_utils_style");
-
-    const SUPPORTED_TABLES = [
-        "Quotation Item",
-        "Sales Order Item",
-        "Sales Invoice Item",
-        "Purchase Order Item",
-        "Purchase Invoice Item",
-        "Delivery Note Item",
-        "Purchase Receipt Item",
-    ];
-
-    emc.grid_supports_sections = function (grid) {
-        if (!grid) return false;
-        const dt = grid.doctype || grid.df?.options;
-        if (dt && SUPPORTED_TABLES.includes(dt)) return true;
-        if (grid.df?.fieldname === "items") return true;
-        if (dt && frappe.meta?.has_field && frappe.meta.has_field(dt, "is_section")) return true;
-        if (grid.docfields && grid.docfields.some((df) => df.fieldname === "is_section")) return true;
-        return false;
-    };
 
     // 1. Bypass client-side mandatory checks for section rows on form save
     emc.patch_check_mandatory = function () {
@@ -156,7 +152,13 @@ window.emc_utils = window.emc_utils || {};
                 $input.val(title);
             }
 
-            $input.off("change.emc blur.emc keydown.emc")
+            $input.off("input.emc change.emc blur.emc keydown.emc")
+                .on("input.emc", function () {
+                    const val = $(this).val();
+                    grid_row.doc.section_title = val;
+                    grid_row.doc.item_name = val;
+                    grid_row.doc.description = val;
+                })
                 .on("change.emc blur.emc", function () {
                     const val = $(this).val();
                     if (grid_row.doc.section_title !== val) {
@@ -180,7 +182,6 @@ window.emc_utils = window.emc_utils || {};
     // 3. Add Section button (Frappe UI / Espresso button)
     emc.setup_grid_buttons = function (grid) {
         if (!grid || !grid.wrapper) return;
-        if (!emc.grid_supports_sections(grid)) return;
 
         const $grid_buttons = grid.wrapper.find(".grid-buttons");
         if (!$grid_buttons.length) return;
@@ -218,17 +219,7 @@ window.emc_utils = window.emc_utils || {};
             });
         }
 
-        // Direct class sync with Add row
-        const $add_row = $grid_buttons.find(".grid-add-row");
-        if ($add_row.length) {
-            if ($add_row.hasClass("hidden") || $add_row.hasClass("d-none")) {
-                $btn.addClass("hidden");
-            } else {
-                $btn.removeClass("hidden d-none");
-            }
-        } else {
-            $btn.removeClass("hidden d-none");
-        }
+        $btn.removeClass("hidden d-none");
     };
 
     // 4. Add section row with safe default values
