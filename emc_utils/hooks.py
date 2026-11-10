@@ -1,4 +1,4 @@
-﻿app_name = "emc_utils"
+app_name = "emc_utils"
 app_title = "EMC Utilities"
 app_publisher = "emc"
 app_description = "Universal child table sections, print enhancements, and desk tools"

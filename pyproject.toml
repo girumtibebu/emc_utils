@@ -1,4 +1,4 @@
-﻿[project]
+[project]
 name = "emc_utils"
 authors = [
     { name = "emc", email = "girum@eternal-media.com"}

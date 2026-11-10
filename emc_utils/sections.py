@@ -1,4 +1,4 @@
-﻿import frappe
+import frappe
 from frappe.utils import flt
 from frappe.model.document import Document
 

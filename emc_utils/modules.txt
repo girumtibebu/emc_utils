@@ -1,1 +1,1 @@
-﻿EMC Utils
+EMC Utils

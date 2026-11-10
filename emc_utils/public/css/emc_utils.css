@@ -1,4 +1,4 @@
-﻿.grid-row.emc-grid-section-row {
+.grid-row.emc-grid-section-row {
     background-color: var(--subtle-accent-background, #f1f5f9) !important;
     border-top: 2px solid var(--border-color, #cbd5e1) !important;
     border-bottom: 2px solid var(--border-color, #cbd5e1) !important;

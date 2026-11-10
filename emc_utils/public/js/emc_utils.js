@@ -1,4 +1,4 @@
-﻿frappe.provide("emc_utils");
+frappe.provide("emc_utils");
 
 emc_utils.setup_grid_sections = function(grid) {
     if (!grid || !grid.docfields) return;
