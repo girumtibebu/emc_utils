@@ -151,7 +151,7 @@
 tr.table-row:has([data-is-section="1"]),
 tr.table-row:has(.emc-print-section-header),
 tr.table-row.emc-print-section-row {
-    background-color: #f8fafc !important;
+    background-color: var(--sec-bg, #f8fafc) !important;
     font-weight: 700 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -160,9 +160,9 @@ tr.table-row.emc-print-section-row {
 tr.table-row:has([data-is-section="1"]) td,
 tr.table-row:has(.emc-print-section-header) td,
 tr.table-row.emc-print-section-row td {
-    background-color: #f8fafc !important;
-    border-top: 1.5px solid #cbd5e1 !important;
-    border-bottom: 1.5px solid #cbd5e1 !important;
+    background-color: var(--sec-bg, #f8fafc) !important;
+    border-top: var(--sec-border-top, var(--sec-border-width, 1.5px) solid var(--sec-border, #cbd5e1)) !important;
+    border-bottom: var(--sec-border-bottom, var(--sec-border-width, 1.5px) solid var(--sec-border, #cbd5e1)) !important;
     font-weight: 700 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -189,15 +189,15 @@ tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
 }
 
 .emc-print-section-badge {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
-    font-size: 8.5px !important;
+    background-color: var(--sec-badge-bg, #0f172a) !important;
+    color: var(--sec-badge-color, #ffffff) !important;
+    font-size: var(--sec-badge-size, 8.5px) !important;
     font-weight: 700 !important;
     padding: 2px 7px !important;
-    border-radius: 4px !important;
+    border-radius: var(--sec-badge-radius, 4px) !important;
     letter-spacing: 0.05em !important;
     text-transform: uppercase !important;
-    display: inline-block !important;
+    display: var(--sec-badge-display, inline-block) !important;
     flex-shrink: 0 !important;
     white-space: nowrap !important;
     -webkit-print-color-adjust: exact !important;
@@ -205,9 +205,9 @@ tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
 }
 
 .emc-print-section-title {
-    font-size: 13.5px !important;
-    font-weight: 700 !important;
-    color: #0f172a !important;
+    font-size: var(--sec-title-size, 13.5px) !important;
+    font-weight: var(--sec-title-weight, 700) !important;
+    color: var(--sec-title-color, #0f172a) !important;
     letter-spacing: 0.01em !important;
     display: inline-block !important;
 }

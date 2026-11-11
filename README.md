@@ -143,24 +143,55 @@ To customize or review the layout visually:
    - Adjust page sizes (A4, Letter) and margins.
 
 ### 3. Customizing Section Styling in the Designer
-The section styling is fully editable and completely resilient to visual edits made inside Frappe v16's Print Format Designer:
+You can customize the appearance of sections directly from the **Custom CSS** field of the **Child Table** in the Print Format Designer using CSS variables:
 
-#### Option A: Table Attribute "Custom CSS" (Container & Border Styling)
-When you click directly on the child table (`Items`) in the designer canvas, the right-hand **Table Inspector** opens:
-1. Under **Style**, you will find **Custom CSS** (`df.custom_style`).
-2. **What to put here:** Container-level CSS properties (applied inline to the `.child-table` wrapper `<div>`):
-   ```css
-   border: 1px solid #e5e7eb;
-   padding: 6px;
-   border-radius: 6px;
-   ```
-3. *Note:* Do not put selector rules like `tr { ... }` here because Frappe renders this field directly as an inline `style="..."` attribute on the table container.
+#### Option A: Child Table "Custom CSS" (Recommended & Direct)
+When you click on the child table (`Items`) in the Print Format Designer canvas, open the right-hand **Table Inspector** under **Style > Custom CSS**.
 
-#### Option B: Global "Custom CSS" (Section Row Spanning & Badge Styling)
-To customize how section rows highlight, span across columns, or display badges:
-1. In the Print Format Designer, click on any blank page canvas area (or switch to the **Settings** tab in the sidebar).
-2. Open the **Custom CSS** section (`print_format.css`).
-3. You will find the pre-configured EMC section styling rules:
+You can adjust section colors, borders, badges, and fonts using CSS variables that cascade directly to all rows:
+
+```css
+/* Container padding */
+padding: 6px;
+
+/* Section Row Background & Borders */
+--sec-bg: #f8fafc;
+--sec-border: #cbd5e1;
+--sec-border-width: 1.5px;
+
+/* Section Badge */
+--sec-badge-bg: #0f172a;
+--sec-badge-color: #ffffff;
+--sec-badge-size: 8.5px;
+--sec-badge-radius: 4px;
+/* To hide the badge completely: --sec-badge-display: none; */
+
+/* Section Title Typography */
+--sec-title-color: #0f172a;
+--sec-title-size: 13.5px;
+--sec-title-weight: 700;
+```
+
+##### Examples:
+- **Soft Blue Theme (Matching Blue Headers):**
+  ```css
+  --sec-bg: #eff6ff;
+  --sec-border: #bfdbfe;
+  --sec-badge-bg: #2563eb;
+  --sec-title-color: #1e40af;
+  ```
+- **Minimalist Border-Only (White background, no badge):**
+  ```css
+  --sec-bg: #ffffff;
+  --sec-border: #e2e8f0;
+  --sec-badge-display: none;
+  --sec-title-color: #0f172a;
+  ```
+
+*Bonus:* If you prefer writing full CSS selector rules (e.g. `tr.emc-print-section-row td { ... }`), our enhancer script automatically detects selector blocks with braces `{ ... }` inside the table's custom CSS and compiles them into active print styles!
+
+#### Option B: Global "Custom CSS" (Document-Wide Print Settings)
+You can also adjust the default section styling document-wide under **Print Settings > Custom CSS** (`print_format.css`).
    ```css
    /* 1. Highlight Section Rows */
    tr.table-row:has([data-is-section="1"]),
