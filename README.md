@@ -165,10 +165,11 @@ Configure section visual styling directly from the **Child Table > Style > Custo
 | **Title Size** | `sec-title-size:` | `--sec-title-size:` | Font size (e.g. `14px`, `1rem`) |
 | **Title Weight** | `sec-title-weight:` | `--sec-title-weight:` | Font weight (`normal`, `600`, `700`, `bold`) |
 | **Title Transform** | `sec-title-transform:` | `--sec-title-transform:` | Text casing (`uppercase`, `capitalize`, `none`) |
-| **Section Header Visibility** | `sec-display:` | `--sec-display:` | `show` (default) or `none` to hide section headers |
+| **Title Visibility** | `sec-title:` / `sec-title-display:` | `--sec-title-display:` | `show` (default) or `none` to hide section title text |
+| **Section Header Visibility** | `sec-display:` | `--sec-display:` | `show` (default) or `none` to hide section header rows |
 | **Row Number Visibility** | `sec-no-display:` / `sec-no:` | `--sec-no-display:` | `none` (default: skip numbering on section rows) or `show` |
 | **Item Numbering Mode** | `sec-item-no:` | `--sec-item-no:` | `continuous` (default: 1, 2, 3, 4...), `section` (reset per section 1, 2...), or `original` (database idx) |
-| **Badge Visibility** | `sec-badge-display:` | `--sec-badge-display:` | Set to `none` to hide the `[SECTION]` badge |
+| **Badge Visibility** | `sec-badge:` / `sec-badge-display:` | `--sec-badge-display:` | `show` (default) or `none` to hide the `[SECTION]` chip |
 | **Badge Background** | `sec-badge-bg:` | `--sec-badge-bg:` | Badge pill background color (e.g. `#2563eb`) |
 | **Badge Color** | `sec-badge-color:` | `--sec-badge-color:` | Badge text color (e.g. `#ffffff`) |
 | **Badge Size** | `sec-badge-size:` | `--sec-badge-size:` | Badge font size (e.g. `8.5px`) |
@@ -184,7 +185,8 @@ Configure section visual styling directly from the **Child Table > Style > Custo
 | **Subtotal Row Bottom Border** | `sec-subtotal-border-bottom:` | `--sec-subtotal-border-bottom:` | Bottom border style (e.g. `2px solid #0f172a`, `3px double #94a3b8`) |
 | **Subtotal Row Color** | `sec-subtotal-color:` | `--sec-subtotal-color:` | Text and amount color of dedicated subtotal row |
 | **Subtotal Row Size** | `sec-subtotal-size:` | `--sec-subtotal-size:` | Font size of subtotal title (e.g. `13px`) |
-| **Subtotal Badge Visibility** | `sec-subtotal-badge:` | `--sec-subtotal-badge-display:` | `show` (default) or `none` to hide `[SUBTOTAL]` pill badge |
+| **Subtotal Title Visibility** | `sec-subtotal-title:` / `sec-subtotal-title-display:` | `--sec-subtotal-title-display:` | `show` (default) or `none` to hide subtotal title text (e.g. "Screen") |
+| **Subtotal Badge Visibility** | `sec-subtotal-badge:` / `sec-subtotal-badge-display:` | `--sec-subtotal-badge-display:` | `show` (default) or `none` to hide `[SUBTOTAL]` pill badge |
 | **Subtotal Badge Background** | `sec-subtotal-badge-bg:` | `--sec-subtotal-badge-bg:` | Subtotal pill badge background color |
 | **Subtotal Badge Color** | `sec-subtotal-badge-color:` | `--sec-subtotal-badge-color:` | Subtotal pill badge text color |
 | **Subtotal Amount Size** | `sec-subtotal-amount-size:` | `--sec-subtotal-amount-size:` | Subtotal amount font size (e.g. `13.5px`) |

@@ -92,7 +92,7 @@ tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
     font-weight: var(--sec-title-weight, 700) !important;
     color: var(--sec-title-color, #0f172a) !important;
     letter-spacing: 0.01em !important;
-    display: inline-block !important;
+    display: var(--sec-title-display, inline-block) !important;
 }
 
 .emc-print-section-total {
@@ -186,6 +186,7 @@ tr.table-row.emc-print-section-subtotal-row td.column-value[data-fieldname="amou
     color: var(--sec-subtotal-color, var(--sec-title-color, #0f172a)) !important;
     letter-spacing: 0.01em !important;
     white-space: nowrap !important;
+    display: var(--sec-subtotal-title-display, inline-block) !important;
 }
 
 .emc-print-subtotal-amount {

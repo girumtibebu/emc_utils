@@ -133,6 +133,7 @@ def extract_section_styles_from_css(css_str):
         "title_color": ["sec-title-color", "--sec-title-color"],
         "title_size": ["sec-title-size", "--sec-title-size"],
         "title_weight": ["sec-title-weight", "--sec-title-weight"],
+        "title_display": ["sec-title-display", "--sec-title-display", "sec-title", "--sec-title"],
         "total_display": [
             "sec-total-display", "--sec-total-display",
             "sec-total", "--sec-total",
@@ -166,6 +167,7 @@ def extract_section_styles_from_css(css_str):
         "subtotal_border_bottom": ["sec-subtotal-border-bottom", "--sec-subtotal-border-bottom"],
         "subtotal_amount_size": ["sec-subtotal-amount-size", "--sec-subtotal-amount-size"],
         "subtotal_amount_weight": ["sec-subtotal-amount-weight", "--sec-subtotal-amount-weight"],
+        "subtotal_title_display": ["sec-subtotal-title-display", "--sec-subtotal-title-display", "sec-subtotal-title", "--sec-subtotal-title"],
     }
     for key, patterns in mapping.items():
         for pat in patterns:
@@ -204,6 +206,11 @@ def generate_dynamic_section_css(props=None):
     title_size = props.get("title_size") or "13.5px"
     title_weight = props.get("title_weight") or "700"
     title_transform = props.get("title_transform") or "none"
+    title_display_raw = (props.get("title_display") or "").strip().lower()
+    if title_display_raw in ("none", "hide", "hidden", "0", "false"):
+        title_display = "none"
+    else:
+        title_display = "inline-block"
 
     total_pos = (props.get("total_pos") or "header").strip().lower()
     total_display_raw = (props.get("total_display") or "").strip().lower()
@@ -247,6 +254,12 @@ def generate_dynamic_section_css(props=None):
     else:
         subtotal_badge_display = "inline-block"
 
+    subtotal_title_display_raw = (props.get("subtotal_title_display") or "").strip().lower()
+    if subtotal_title_display_raw in ("none", "hide", "hidden", "0", "false"):
+        subtotal_title_display = "none"
+    else:
+        subtotal_title_display = "inline-block"
+
     subtotal_border_bottom = props.get("subtotal_border_bottom") or f"2px solid {title_color}"
     subtotal_amount_size = props.get("subtotal_amount_size") or "13.5px"
     subtotal_amount_weight = props.get("subtotal_amount_weight") or "800"
@@ -272,6 +285,7 @@ def generate_dynamic_section_css(props=None):
     --sec-title-size: {title_size} !important;
     --sec-title-weight: {title_weight} !important;
     --sec-title-transform: {title_transform} !important;
+    --sec-title-display: {title_display} !important;
     --sec-title-cell-width: {title_cell_width} !important;
     --sec-total-position: {total_pos} !important;
     --sec-total-display: {total_display} !important;
@@ -289,6 +303,7 @@ def generate_dynamic_section_css(props=None):
     --sec-subtotal-border-bottom: {subtotal_border_bottom} !important;
     --sec-subtotal-size: {subtotal_size} !important;
     --sec-subtotal-weight: {subtotal_weight} !important;
+    --sec-subtotal-title-display: {subtotal_title_display} !important;
     --sec-subtotal-badge-bg: {subtotal_badge_bg} !important;
     --sec-subtotal-badge-color: {subtotal_badge_color} !important;
     --sec-subtotal-badge-display: {subtotal_badge_display} !important;
@@ -375,7 +390,7 @@ tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
     color: {title_color} !important;
     text-transform: {title_transform} !important;
     letter-spacing: 0.01em !important;
-    display: inline-block !important;
+    display: {title_display} !important;
 }}
 
 .emc-print-section-total {{
@@ -462,6 +477,7 @@ tr.table-row.emc-print-section-subtotal-row td.column-value[data-fieldname="amou
     color: {subtotal_color} !important;
     letter-spacing: 0.01em !important;
     white-space: nowrap !important;
+    display: {subtotal_title_display} !important;
 }}
 
 .emc-print-subtotal-amount {{
