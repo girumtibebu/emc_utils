@@ -169,11 +169,16 @@ Configure section visual styling directly from the **Child Table > Style > Custo
 | **Badge Color** | `sec-badge-color:` | `--sec-badge-color:` | Badge text color (e.g. `#ffffff`) |
 | **Badge Size** | `sec-badge-size:` | `--sec-badge-size:` | Badge font size (e.g. `8.5px`) |
 | **Badge Radius** | `sec-badge-radius:` | `--sec-badge-radius:` | Pill border radius (e.g. `4px`) |
+| **Section Total Position** | `sec-total-position:` | `--sec-total-position:` | `header` (inline on section bar), `bottom` (dedicated row after items), `both`, or `none` |
 | **Section Total Price** | `sec-total:` / `sec-total-display:` | `--sec-total-display:` | Set to `none` to hide section total, or `show` to display |
 | **Section Total Label** | `sec-total-label:` | `--sec-total-label-display:` | Set to `none` to hide "Section Total:" label and show amount only |
 | **Section Total Color** | `sec-total-color:` | `--sec-total-color:` | Total price text color (e.g. `#0f172a`, `#1e40af`) |
 | **Section Total Background** | `sec-total-bg:` | `--sec-total-bg:` | Pill/badge background color (e.g. `#dbeafe`) |
 | **Section Total Size** | `sec-total-size:` | `--sec-total-size:` | Total price font size (e.g. `12.5px`) |
+| **Subtotal Row Background** | `sec-subtotal-bg:` | `--sec-subtotal-bg:` | Background color of dedicated subtotal row |
+| **Subtotal Row Border** | `sec-subtotal-border:` | `--sec-subtotal-border:` | Border color of dedicated subtotal row |
+| **Subtotal Row Color** | `sec-subtotal-color:` | `--sec-subtotal-color:` | Text color of dedicated subtotal row |
+| **Subtotal Row Size** | `sec-subtotal-size:` | `--sec-subtotal-size:` | Font size of subtotal row (e.g. `12.5px`) |
 
 #### Ready-to-Use Presets
 
@@ -207,6 +212,16 @@ sec-badge-display: none;
 sec-no-display: none;
 sec-title-color: #111827;
 sec-title-size: 13.5px;
+```
+
+**4. Dedicated Subtotal Row (Bottom of Section)**
+```css
+sec-bg: #f8fafc;
+sec-border: #cbd5e1;
+sec-title-color: #0f172a;
+sec-total-position: bottom;
+sec-subtotal-bg: #f1f5f9;
+sec-subtotal-color: #0f172a;
 ```
 
 #### Built-in Print Protection & Failsafe

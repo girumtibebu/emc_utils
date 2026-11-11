@@ -23,8 +23,23 @@ def setup_sample_print_formats():
             "css": custom_css,
         },
         {
+            "name": "Quotation with Section Subtotals",
+            "file": "quotation_subtotals.json",
+            "css": custom_css,
+        },
+        {
             "name": "Quotation Modern with Sections",
             "file": "quotation_modern_sections.json",
+            "css": custom_css,
+            "margin_top": 15.0,
+            "margin_bottom": 8.0,
+            "margin_left": 8.0,
+            "margin_right": 8.0,
+            "page_number": "Hide",
+        },
+        {
+            "name": "Quotation Modern with Subtotals",
+            "file": "quotation_modern_subtotals.json",
             "css": custom_css,
             "margin_top": 15.0,
             "margin_bottom": 8.0,

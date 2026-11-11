@@ -139,6 +139,12 @@ def extract_section_styles_from_css(css_str):
             "sec-price-display", "--sec-price-display",
             "sec-price", "--sec-price",
         ],
+        "total_pos": [
+            "sec-total-position", "--sec-total-position",
+            "sec-total-pos", "--sec-total-pos",
+            "sec-price-position", "--sec-price-position",
+            "sec-price-pos", "--sec-price-pos",
+        ],
         "total_color": ["sec-total-color", "--sec-total-color", "sec-price-color", "--sec-price-color"],
         "total_bg": ["sec-total-bg", "--sec-total-bg", "sec-price-bg", "--sec-price-bg"],
         "total_size": ["sec-total-size", "--sec-total-size", "sec-price-size", "--sec-price-size"],
@@ -147,6 +153,11 @@ def extract_section_styles_from_css(css_str):
             "sec-total-label-display", "--sec-total-label-display",
             "sec-total-label", "--sec-total-label",
         ],
+        "subtotal_bg": ["sec-subtotal-bg", "--sec-subtotal-bg"],
+        "subtotal_color": ["sec-subtotal-color", "--sec-subtotal-color"],
+        "subtotal_border": ["sec-subtotal-border", "--sec-subtotal-border"],
+        "subtotal_size": ["sec-subtotal-size", "--sec-subtotal-size"],
+        "subtotal_weight": ["sec-subtotal-weight", "--sec-subtotal-weight"],
     }
     for key, patterns in mapping.items():
         for pat in patterns:
@@ -174,11 +185,21 @@ def generate_dynamic_section_css(props=None):
     title_weight = props.get("title_weight") or "700"
     title_transform = props.get("title_transform") or "none"
 
+    total_pos = (props.get("total_pos") or "header").strip().lower()
     total_display_raw = (props.get("total_display") or "").strip().lower()
-    if total_display_raw in ("none", "hide", "hidden", "0", "false"):
+
+    if total_display_raw in ("none", "hide", "hidden", "0", "false") or total_pos in ("none", "hide", "hidden"):
         total_display = "none"
-    else:
+        subtotal_display = "none"
+    elif total_pos in ("bottom", "footer", "separate", "row", "end"):
+        total_display = "none"
+        subtotal_display = "table-row"
+    elif total_pos == "both":
         total_display = "inline-flex"
+        subtotal_display = "table-row"
+    else:  # header (default)
+        total_display = "inline-flex"
+        subtotal_display = "none"
 
     total_label_raw = (props.get("total_label_display") or "").strip().lower()
     if total_label_raw in ("none", "hide", "hidden", "0", "false"):
@@ -192,6 +213,12 @@ def generate_dynamic_section_css(props=None):
     total_bg = props.get("total_bg") or "transparent"
     total_radius = props.get("total_radius") or "4px"
     total_padding = "2px 7px" if total_bg != "transparent" else "0"
+
+    subtotal_bg = props.get("subtotal_bg") or bg
+    subtotal_color = props.get("subtotal_color") or title_color
+    subtotal_border = props.get("subtotal_border") or border
+    subtotal_size = props.get("subtotal_size") or "12.5px"
+    subtotal_weight = props.get("subtotal_weight") or "700"
 
     title_cell_width = "100%" if no_display == "none" else "95%"
 
@@ -214,6 +241,7 @@ def generate_dynamic_section_css(props=None):
     --sec-title-weight: {title_weight} !important;
     --sec-title-transform: {title_transform} !important;
     --sec-title-cell-width: {title_cell_width} !important;
+    --sec-total-position: {total_pos} !important;
     --sec-total-display: {total_display} !important;
     --sec-total-label-display: {total_label_display} !important;
     --sec-total-color: {total_color} !important;
@@ -222,6 +250,12 @@ def generate_dynamic_section_css(props=None):
     --sec-total-bg: {total_bg} !important;
     --sec-total-padding: {total_padding} !important;
     --sec-total-radius: {total_radius} !important;
+    --sec-subtotal-display: {subtotal_display} !important;
+    --sec-subtotal-bg: {subtotal_bg} !important;
+    --sec-subtotal-color: {subtotal_color} !important;
+    --sec-subtotal-border: {subtotal_border} !important;
+    --sec-subtotal-size: {subtotal_size} !important;
+    --sec-subtotal-weight: {subtotal_weight} !important;
 }}""",
 
         f"""tr.table-row:has([data-is-section="1"]),
@@ -330,6 +364,58 @@ tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
 
 .emc-print-section-total-amount {{
     font-weight: {total_weight} !important;
+    font-variant-numeric: tabular-nums !important;
+}}
+
+tr.table-row:has([data-is-section-subtotal="1"]),
+tr.table-row.emc-print-section-subtotal-row {{
+    display: {subtotal_display} !important;
+    background-color: {subtotal_bg} !important;
+    font-weight: {subtotal_weight} !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}}
+
+tr.table-row:has([data-is-section-subtotal="1"]) td,
+tr.table-row.emc-print-section-subtotal-row td {{
+    background-color: {subtotal_bg} !important;
+    border-top: 1px dashed {subtotal_border} !important;
+    border-bottom: 1.5px solid {subtotal_border} !important;
+    font-weight: {subtotal_weight} !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}}
+
+tr.table-row:has([data-is-section-subtotal="1"]) td.column-value:not([data-fieldname="item_name"]),
+tr.table-row.emc-print-section-subtotal-row td.column-value:not([data-fieldname="item_name"]) {{
+    display: none !important;
+}}
+
+tr.table-row:has([data-is-section-subtotal="1"]) td.column-value[data-fieldname="item_name"],
+tr.table-row.emc-print-section-subtotal-row td.column-value[data-fieldname="item_name"] {{
+    width: 100% !important;
+    max-width: none !important;
+}}
+
+.emc-print-section-subtotal-header {{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 3px 0 !important;
+    gap: 12px !important;
+    color: {subtotal_color} !important;
+    font-size: {subtotal_size} !important;
+}}
+
+.emc-print-section-subtotal-label {{
+    font-weight: {subtotal_weight} !important;
+    letter-spacing: 0.01em !important;
+}}
+
+.emc-print-section-subtotal-amount {{
+    font-weight: 700 !important;
     font-variant-numeric: tabular-nums !important;
 }}
 
@@ -463,11 +549,14 @@ def before_print_sections(doc, method=None, print_settings=None):
             active_pf.css = active_pf.css.split("/* EMC Dynamic Section CSS */")[0]
         active_pf.css = (active_pf.css or "") + "\n\n/* EMC Dynamic Section CSS */\n" + dynamic_css_rules
 
+    import copy
     hide_idx = (props.get("no_display") == "none") if props else False
     meta = frappe.get_meta(doc.doctype)
     first_section = True
     for tf in meta.get_table_fields():
         child_rows = doc.get(tf.fieldname) or []
+        if not child_rows:
+            continue
 
         # Precalculate section totals (sum of item.amount until the next section)
         current_section = None
@@ -479,7 +568,70 @@ def before_print_sections(doc, method=None, print_settings=None):
             elif current_section is not None:
                 section_totals[id(current_section)] += flt(getattr(row, "amount", 0))
 
+        # Build list of child rows with injected subtotal summary rows
+        new_child_rows = []
+        cur_sec = None
         for row in child_rows:
+            if getattr(row, "is_section", 0):
+                if cur_sec is not None:
+                    tot = section_totals.get(id(cur_sec), 0.0)
+                    formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
+                    sec_title = (getattr(cur_sec, "section_title", None) or getattr(cur_sec, "item_name", "") or "Section").strip()
+                    sub_label = f"Subtotal ({sec_title}):"
+
+                    sub_row = copy.copy(cur_sec)
+                    sub_row.is_section = 0
+                    sub_row.is_section_subtotal = 1
+                    sub_row.idx = None
+
+                    def make_subtotal_get_formatted(lbl, val):
+                        def custom_get_formatted(self, fieldname, *args, **kwargs):
+                            if fieldname == "item_name":
+                                return (
+                                    f'<div class="emc-print-section-subtotal-header" data-is-section-subtotal="1">'
+                                    f'<span class="emc-print-section-subtotal-label">{lbl}</span>'
+                                    f'<span class="emc-print-section-subtotal-amount">{val}</span>'
+                                    f'</div>'
+                                )
+                            return ""
+                        return custom_get_formatted
+
+                    sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sub_label, formatted_total), sub_row)
+                    new_child_rows.append(sub_row)
+
+                cur_sec = row
+
+            new_child_rows.append(row)
+
+        if cur_sec is not None:
+            tot = section_totals.get(id(cur_sec), 0.0)
+            formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
+            sec_title = (getattr(cur_sec, "section_title", None) or getattr(cur_sec, "item_name", "") or "Section").strip()
+            sub_label = f"Subtotal ({sec_title}):"
+
+            sub_row = copy.copy(cur_sec)
+            sub_row.is_section = 0
+            sub_row.is_section_subtotal = 1
+            sub_row.idx = None
+
+            def make_subtotal_get_formatted(lbl, val):
+                def custom_get_formatted(self, fieldname, *args, **kwargs):
+                    if fieldname == "item_name":
+                        return (
+                            f'<div class="emc-print-section-subtotal-header" data-is-section-subtotal="1">'
+                            f'<span class="emc-print-section-subtotal-label">{lbl}</span>'
+                            f'<span class="emc-print-section-subtotal-amount">{val}</span>'
+                            f'</div>'
+                        )
+                    return ""
+                return custom_get_formatted
+
+            sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sub_label, formatted_total), sub_row)
+            new_child_rows.append(sub_row)
+
+        doc.set(tf.fieldname, new_child_rows)
+
+        for row in new_child_rows:
             if getattr(row, "is_section", 0):
                 title = (getattr(row, "section_title", None) or getattr(row, "item_name", "") or "Section").strip()
                 tot = section_totals.get(id(row), 0.0)
