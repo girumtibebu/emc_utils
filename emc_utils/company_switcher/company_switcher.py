@@ -120,7 +120,7 @@ def set_scope(companies):
 	return {"scope": valid}
 
 
-def get_permission_query_conditions(user=None):
+def get_permission_query_conditions(user=None, doctype=None):
 	"""Limit company-owned doctypes to the user's scope.
 
 	Installed on doctypes that have a ``company`` Link field; leaves anything
@@ -128,6 +128,19 @@ def get_permission_query_conditions(user=None):
 	no extra WHERE clause is added, leaving Frappe's own permissions to do the
 	work.
 	"""
+	if not doctype:
+		return ""
+
+	try:
+		meta = frappe.get_meta(doctype)
+		if not meta or not meta.has_field("company"):
+			return ""
+		df = meta.get_field("company")
+		if not df or df.fieldtype != "Link" or df.options != "Company":
+			return ""
+	except Exception:
+		return ""
+
 	user = user or frappe.session.user
 	allowed = get_allowed_companies(user)
 	scope = get_scope(user)
@@ -136,7 +149,7 @@ def get_permission_query_conditions(user=None):
 		return ""
 
 	quoted = ", ".join(frappe.db.escape(name) for name in scope)
-	return f"`tab{frappe.flags.current_doctype}`.`company` in ({quoted})"
+	return f"`tab{doctype}`.`company` in ({quoted})"
 
 
 def boot_session(bootinfo):
