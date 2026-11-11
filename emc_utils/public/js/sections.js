@@ -100,6 +100,13 @@ window.emc_utils = window.emc_utils || {};
             user-select: none !important;
         }
 
+        [data-theme="dark"] .emc-section-badge,
+        .dark .emc-section-badge {
+            background-color: var(--surface-gray-4, #334155) !important;
+            color: var(--text-color, #f1f5f9) !important;
+            border: 1px solid var(--outline-gray-2, #475569) !important;
+        }
+
         /* Clean Espresso-compatible Input with Full-Width Expansion and Guaranteed High-Contrast Visibility */
         .emc-section-input {
             font-size: 13.5px !important;
@@ -140,6 +147,49 @@ window.emc_utils = window.emc_utils || {};
             background: #1e293b !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
+        }
+
+        /* Read-only / Submitted Document Section Title */
+        .emc-section-input[readonly],
+        .emc-section-input:disabled {
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            cursor: default !important;
+            pointer-events: none !important;
+            user-select: text !important;
+        }
+
+        /* Responsive Mobile Layout */
+        @media (max-width: 768px) {
+            .data-row.emc-grid-section-row .emc-section-cell {
+                left: 36px !important;
+                width: calc(100% - 36px) !important;
+                padding: 2px 8px !important;
+            }
+            .emc-section-inner {
+                gap: 8px !important;
+            }
+            .emc-section-input {
+                font-size: 13px !important;
+                min-width: 130px !important;
+                padding: 2px 6px !important;
+            }
+            .emc-section-badge {
+                font-size: 9px !important;
+                padding: 1px 5px !important;
+            }
+            .grid-buttons {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 6px !important;
+            }
+            .grid-buttons .grid-add-section,
+            .grid-buttons .grid-add-row {
+                flex: 1 1 auto !important;
+                text-align: center !important;
+                min-width: 100px !important;
+            }
         }
     `;
 
@@ -242,6 +292,19 @@ window.emc_utils = window.emc_utils || {};
                 }
             }
 
+            const is_row_editable =
+                !grid_row.grid?.df?.read_only &&
+                (!grid_row.doc || grid_row.doc.docstatus === 0) &&
+                (!grid_row.frm || (!grid_row.frm.is_read_only() && grid_row.frm.doc.docstatus === 0)) &&
+                (typeof grid_row.grid?.is_editable === "function" ? grid_row.grid.is_editable() : true);
+
+            const $section_input = $cell.find(".emc-section-input");
+            if (!is_row_editable) {
+                $section_input.prop("readonly", true).prop("disabled", true);
+            } else {
+                $section_input.prop("readonly", false).prop("disabled", false);
+            }
+
             // Bind input and keyboard events strictly to the current row doc
             $cell
                 .off("click.emc mousedown.emc")
@@ -278,7 +341,7 @@ window.emc_utils = window.emc_utils || {};
 
     // 4. Setup grid buttons (Add section)
     emc.setup_grid_buttons = function (grid) {
-        if (!grid || !grid.wrapper || !grid.df || grid.df.read_only) return;
+        if (!grid || !grid.wrapper || !grid.df) return;
 
         // Intercept frm.print_doc so dirty changes (sections & rows) are saved before switching to print preview
         if (grid.frm && !grid.frm.__emc_print_doc_hooked) {
@@ -298,6 +361,28 @@ window.emc_utils = window.emc_utils || {};
         if (!$grid_buttons.length) return;
 
         let $btn = $grid_buttons.find(".grid-add-section");
+        const $add_row = $grid_buttons.find(".grid-add-row");
+
+        const is_editable =
+            !grid.df.read_only &&
+            !grid.cannot_add_rows &&
+            (!grid.frm || (!grid.frm.is_read_only() && grid.frm.doc && grid.frm.doc.docstatus === 0)) &&
+            (typeof grid.is_editable === "function" ? grid.is_editable() : true);
+
+        const add_row_hidden =
+            !$add_row.length ||
+            $add_row.is(":hidden") ||
+            $add_row.hasClass("hidden") ||
+            $add_row.hasClass("d-none") ||
+            $add_row.css("display") === "none";
+
+        if (!is_editable || add_row_hidden) {
+            if ($btn.length) {
+                $btn.addClass("hidden d-none").hide();
+            }
+            return;
+        }
+
         if (!$btn.length) {
             let btn_html = "";
             if (frappe.ui?.button?.html) {
@@ -307,13 +392,12 @@ window.emc_utils = window.emc_utils || {};
                     css_class: "grid-add-section",
                 });
             } else {
-                btn_html = `<button class="btn es-button grid-add-section" type="button">${__("Add section")}</button>`;
+                btn_html = `<button class="btn es-button btn-xs btn-secondary grid-add-section" type="button">${__("Add section")}</button>`;
             }
 
             $btn = $(btn_html);
 
             const $add_multiple = $grid_buttons.find(".grid-add-multiple-rows");
-            const $add_row = $grid_buttons.find(".grid-add-row");
 
             if ($add_multiple.length) {
                 $btn.insertAfter($add_multiple);
@@ -330,7 +414,7 @@ window.emc_utils = window.emc_utils || {};
             });
         }
 
-        $btn.removeClass("hidden d-none");
+        $btn.removeClass("hidden d-none").show();
     };
 
     // 5. Add section row with safe default values

@@ -99,6 +99,14 @@
     user-select: none !important;
 }
 
+[data-theme="dark"] .emc-section-badge,
+.dark .emc-section-badge,
+body[data-theme="dark"] .emc-section-badge {
+    background-color: var(--surface-gray-4, #334155) !important;
+    color: var(--text-color, #f1f5f9) !important;
+    border: 1px solid var(--outline-gray-2, #475569) !important;
+}
+
 /* Clean Espresso-compatible Input with Full-Width Expansion and Guaranteed High-Contrast Visibility */
 .emc-section-input {
     font-size: 13.5px !important;
@@ -129,16 +137,61 @@
 }
 
 [data-theme="dark"] .emc-section-input,
-.dark .emc-section-input {
+.dark .emc-section-input,
+body[data-theme="dark"] .emc-section-input {
     color: #f8fafc !important;
     -webkit-text-fill-color: #f8fafc !important;
 }
 
 [data-theme="dark"] .emc-section-input:focus,
-.dark .emc-section-input:focus {
+.dark .emc-section-input:focus,
+body[data-theme="dark"] .emc-section-input:focus {
     background: #1e293b !important;
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Read-only / Submitted Document Section Title */
+.emc-section-input[readonly],
+.emc-section-input:disabled {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    cursor: default !important;
+    pointer-events: none !important;
+    user-select: text !important;
+}
+
+/* Responsive Mobile Layout */
+@media (max-width: 768px) {
+    .data-row.emc-grid-section-row .emc-section-cell {
+        left: 36px !important;
+        width: calc(100% - 36px) !important;
+        padding: 2px 8px !important;
+    }
+    .emc-section-inner {
+        gap: 8px !important;
+    }
+    .emc-section-input {
+        font-size: 13px !important;
+        min-width: 130px !important;
+        padding: 2px 6px !important;
+    }
+    .emc-section-badge {
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+    }
+    .grid-buttons {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    .grid-buttons .grid-add-section,
+    .grid-buttons .grid-add-row {
+        flex: 1 1 auto !important;
+        text-align: center !important;
+        min-width: 100px !important;
+    }
 }
 
 .grid-add-section svg {

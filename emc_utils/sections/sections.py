@@ -206,9 +206,7 @@ def generate_dynamic_section_css(props):
     if t_decls:
         rules.append(f".emc-print-section-title {{ {' '.join(t_decls)} }}")
 
-    if rules:
-        return f'<style id="emc-dynamic-section-css">\n' + "\n".join(rules) + "\n</style>"
-    return ""
+    return "\n".join(rules)
 
 def before_print_sections(doc, method=None, print_settings=None):
     """Format section rows for print generation: add badge, bold title, and clean up empty cells."""
@@ -217,35 +215,79 @@ def before_print_sections(doc, method=None, print_settings=None):
 
     from types import MethodType
     import json
+    import sys
+
+    # Look for active PrintFormat document in the execution stack
+    cur = sys._getframe()
+    active_pf = None
+    while cur:
+        f_self = cur.f_locals.get("self")
+        if f_self and hasattr(f_self, "print_format"):
+            active_pf = getattr(f_self, "print_format")
+            break
+        if "print_format" in cur.f_locals:
+            active_pf = cur.f_locals["print_format"]
+            break
+        cur = cur.f_back
 
     # Detect active Print Format's child table custom_style
     custom_style = ""
-    format_name = (
-        frappe.form_dict.get("print_format")
-        or frappe.form_dict.get("format")
-        or getattr(doc, "print_format", None)
-    )
-    if not format_name:
-        format_name = frappe.db.get_value(
-            "Property Setter",
-            {"doc_type": doc.doctype, "property": "default_print_format"},
-            "value",
-        )
-
-    if format_name and frappe.db.exists("Print Format", format_name):
+    if active_pf and getattr(active_pf, "format_data", None):
         try:
-            pf = frappe.get_doc("Print Format", format_name)
-            if pf.format_data:
-                fd = json.loads(pf.format_data)
-                for sec in fd.get("sections", []):
-                    for col in sec.get("columns", []):
-                        for fld in col.get("fields", []):
-                            if fld.get("fieldname") == "items" or fld.get("fieldtype") == "Table":
-                                custom_style = fld.get("custom_style") or ""
-                                if custom_style:
-                                    break
+            fd = json.loads(active_pf.format_data)
+            for sec in fd.get("sections", []):
+                for col in sec.get("columns", []):
+                    for fld in col.get("fields", []):
+                        if fld.get("fieldname") == "items" or fld.get("fieldtype") == "Table":
+                            custom_style = fld.get("custom_style") or ""
+                            # Also ensure item_name fieldtype is HTML Editor so merged cells do not strip tags
+                            for tcol in fld.get("table_columns", []):
+                                if tcol.get("fieldname") == "item_name":
+                                    tcol["fieldtype"] = "HTML Editor"
+                            if custom_style:
+                                break
+                    if custom_style:
+                        break
+                if custom_style:
+                    break
+            active_pf.format_data = json.dumps(fd)
         except Exception:
             pass
+
+    if not custom_style:
+        format_name = (
+            frappe.form_dict.get("print_format")
+            or frappe.form_dict.get("format")
+            or getattr(doc, "print_format", None)
+            or (active_pf.name if active_pf and hasattr(active_pf, "name") else None)
+        )
+        if not format_name:
+            format_name = frappe.db.get_value(
+                "Property Setter",
+                {"doc_type": doc.doctype, "property": "default_print_format"},
+                "value",
+            )
+
+        if format_name and frappe.db.exists("Print Format", format_name):
+            try:
+                pf = frappe.get_doc("Print Format", format_name)
+                if pf.format_data:
+                    fd = json.loads(pf.format_data)
+                    for sec in fd.get("sections", []):
+                        for col in sec.get("columns", []):
+                            for fld in col.get("fields", []):
+                                if fld.get("fieldname") == "items" or fld.get("fieldtype") == "Table":
+                                    custom_style = fld.get("custom_style") or ""
+                                    if custom_style:
+                                        break
+                                if custom_style:
+                                    break
+                            if custom_style:
+                                break
+                        if custom_style:
+                            break
+            except Exception:
+                pass
 
     if not custom_style:
         try:
@@ -275,12 +317,16 @@ def before_print_sections(doc, method=None, print_settings=None):
         except Exception:
             pass
 
-    dynamic_style_tag = ""
+    dynamic_css_rules = ""
+    props = {}
     if custom_style:
         props = extract_section_styles_from_css(custom_style)
-        dynamic_style_tag = generate_dynamic_section_css(props)
+        dynamic_css_rules = generate_dynamic_section_css(props)
 
-    hide_idx = (props.get("no_display") == "none") if dynamic_style_tag else False
+    if dynamic_css_rules and active_pf and hasattr(active_pf, "css"):
+        active_pf.css = (active_pf.css or "") + "\n\n/* EMC Dynamic Section CSS */\n" + dynamic_css_rules
+
+    hide_idx = (props.get("no_display") == "none") if props else False
     meta = frappe.get_meta(doc.doctype)
     first_section = True
     for tf in meta.get_table_fields():
@@ -307,9 +353,10 @@ def before_print_sections(doc, method=None, print_settings=None):
                 if hasattr(row, "uom"):
                     row.uom = ""
 
+                # Only include fallback style tag if active_pf could not receive the CSS in head
                 style_prefix = ""
-                if first_section and dynamic_style_tag:
-                    style_prefix = dynamic_style_tag
+                if first_section and dynamic_css_rules and (not active_pf or not hasattr(active_pf, "css")):
+                    style_prefix = f'<style id="emc-dynamic-section-css">\n{dynamic_css_rules}\n</style>'
                     first_section = False
 
                 row.item_name = (
