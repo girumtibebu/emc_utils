@@ -10,10 +10,14 @@ app_license = "mit"
 required_apps = ["erpnext"]
 
 app_include_js = [
-    "/assets/emc_utils/js/emc_utils.js",
+    "/assets/emc_utils/js/sections.js",
     "/assets/emc_utils/js/company_switcher.js",
 ]
-app_include_css = "/assets/emc_utils/css/emc_utils.css"
+
+app_include_css = [
+    "/assets/emc_utils/css/sections.css",
+    "/assets/emc_utils/css/company_switcher.css",
+]
 
 doctype_js = {
     "Quotation": "public/js/quotation.js",
@@ -23,7 +27,7 @@ doctype_js = {
 boot_session = "emc_utils.sections.boot_session"
 
 # Company scope list query conditions
-_condition = "emc_utils.company_scope.get_permission_query_conditions"
+_condition = "emc_utils.company_switcher.company_switcher.get_permission_query_conditions"
 permission_query_conditions = {doctype: _condition for doctype in SCOPED_DOCTYPES}
 permission_query_conditions["*"] = _condition
 
@@ -33,6 +37,7 @@ after_migrate = "emc_utils.setup.after_migrate"
 doc_events = {
     "*": {
         "before_validate": "emc_utils.sections.before_validate_sections",
+        "before_print": "emc_utils.sections.before_print_sections",
     }
 }
 

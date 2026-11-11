@@ -1,0 +1,1 @@
+from emc_utils.print_designer.setup import setup_sample_print_formats

@@ -52,6 +52,8 @@
             bottom: 0 !important;
             left: 71px !important;
             right: 0 !important;
+            width: calc(100% - 71px) !important;
+            max-width: none !important;
             z-index: 3 !important;
             display: flex !important;
             align-items: center !important;
@@ -74,9 +76,22 @@
             flex: 1 1 auto !important;
         }
 
-        /* Frappe UI / Espresso Badge for Section */
+        /* Frappe UI / Espresso Badge for Section - Prevent any truncation or constraints */
+        .emc-section-badge,
+        .emc-section-badge span,
+        .emc-section-badge .es-badge__label {
+            width: auto !important;
+            min-width: unset !important;
+            max-width: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
         .emc-section-badge {
-            cursor: grab !important;
+            cursor: default !important;
             flex-shrink: 0 !important;
             letter-spacing: 0.04em !important;
             font-weight: 600 !important;
@@ -99,6 +114,7 @@
             width: 100% !important;
             flex: 1 1 auto !important;
             min-width: 250px !important;
+            max-width: none !important;
             transition: all 0.15s ease-in-out !important;
         }
 
@@ -184,23 +200,31 @@
                 return false;
             });
 
+            let badge_html = "";
+            if (frappe.ui?.badge?.html) {
+                badge_html = frappe.ui.badge.html({
+                    label: __("SECTION"),
+                    theme: "gray",
+                    size: "sm",
+                    variant: "solid",
+                    css_class: "emc-section-badge",
+                });
+            } else {
+                badge_html = `<span class="es-badge emc-section-badge" data-size="sm" data-variant="solid"><span class="es-badge__label">${__("SECTION")}</span></span>`;
+            }
+
+            const doc_key = (grid_row.frm ? (grid_row.frm.doctype + "_" + grid_row.frm.docname) : "") + "_" + (grid_row.doc.name || "");
+            const cached_title = doc_key ? sessionStorage.getItem("emc_sec_" + doc_key) : null;
+            let title = grid_row.doc.section_title || grid_row.doc.item_name || grid_row.doc.description || cached_title || "";
+
+            if (!grid_row.doc.section_title && title) {
+                grid_row.doc.section_title = title;
+                grid_row.doc.item_name = title;
+                grid_row.doc.description = title;
+            }
+
             let $cell = $row.find(".emc-section-cell");
             if (!$cell.length) {
-                let badge_html = "";
-                if (frappe.ui?.badge?.html) {
-                    badge_html = frappe.ui.badge.html({
-                        label: __("SECTION"),
-                        theme: "gray",
-                        size: "sm",
-                        variant: "solid",
-                        css_class: "sortable-handle emc-section-badge",
-                    });
-                } else {
-                    badge_html = `<span class="es-badge sortable-handle emc-section-badge" data-size="sm" data-variant="solid"><span class="es-badge__label">${__("SECTION")}</span></span>`;
-                }
-
-                const title = grid_row.doc.section_title || grid_row.doc.item_name || "";
-
                 $cell = $(`
                     <div class="emc-section-cell">
                         <div class="emc-section-inner">
@@ -211,6 +235,11 @@
                 `);
 
                 $row.append($cell);
+            } else {
+                const $inp = $cell.find(".emc-section-input");
+                if ($inp.length && $inp.val() !== title && !$inp.is(":focus")) {
+                    $inp.val(title);
+                }
             }
 
             // Bind input and keyboard events
@@ -222,14 +251,26 @@
 
             $cell
                 .find(".emc-section-input")
-                .off("input.emc blur.emc keydown.emc")
-                .on("input.emc blur.emc", function () {
+                .off("input.emc blur.emc change.emc keydown.emc")
+                .on("input.emc blur.emc change.emc", function () {
                     const val = $(this).val();
-                    if (grid_row.doc.section_title !== val) {
-                        frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "section_title", val);
-                        frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "item_name", val);
-                        frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "description", val);
+                    grid_row.doc.section_title = val;
+                    grid_row.doc.item_name = val;
+                    grid_row.doc.description = val;
+
+                    if (doc_key) {
+                        try {
+                            sessionStorage.setItem("emc_sec_" + doc_key, val);
+                        } catch (e) {}
                     }
+
+                    if (grid_row.frm) {
+                        grid_row.frm.dirty();
+                    }
+
+                    frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "section_title", val);
+                    frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "item_name", val);
+                    frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "description", val);
                 })
                 .on("keydown.emc", function (e) {
                     if (e.key === "Enter") {
@@ -278,6 +319,20 @@
     function setup_grid(frm, table_fieldname = "items") {
         patch_check_mandatory();
         patch_grid_row_toggle_view();
+
+        // Intercept frm.print_doc so dirty changes (sections & rows) are saved before switching to print preview
+        if (frm && !frm.__emc_print_doc_hooked) {
+            const orig_print_doc = frm.print_doc;
+            frm.print_doc = function () {
+                if (this.is_dirty()) {
+                    return this.save().then(() => {
+                        orig_print_doc.apply(this, arguments);
+                    });
+                }
+                return orig_print_doc.apply(this, arguments);
+            };
+            frm.__emc_print_doc_hooked = true;
+        }
 
         if (!frm || !frm.fields_dict || !frm.fields_dict[table_fieldname]) return;
         const grid = frm.fields_dict[table_fieldname].grid;

@@ -60,11 +60,15 @@ Print documents with company-specific templates without changing site-wide defau
 
 ---
 
-### 4. Modern Sectioned Print Formats & Print Designe
+### 4. Modern Sectioned Print Formats & Print Format Designer
 
 Sections translate cleanly into printable documents and PDFs:
 
-- **Included Jinja Template:** `Quotation Modern with Sections` renders full-width banner rows (`colspan`) with badge styling, clean typography, and continuous numbering that skips section divider rows.
+- **Frappe v16 Print Format Designer Compatible:** Includes `Quotation with Sections`, built with Frappe's modern Print Format Builder Beta (`print_format_builder_beta: 1`).
+  - Visually customize columns, headers, footers, and margins in the Print Format Designer (`/app/print-format-builder-beta/Quotation%20with%20Sections`).
+  - Includes custom CSS editor integration: Open the Designer sidebar -> **Custom CSS** to tweak section colors, badge background, borders, and typography.
+  - Automatically suppresses zero rates, quantities, and unneeded cells on section rows.
+- **Save Protection on Print Preview:** Switching to Print Preview or pressing `Ctrl+P` on an unsaved quote automatically triggers `frm.save()`, ensuring newly added sections and titles are persisted to the database and accurately rendered in the preview without data loss when returning to Desk.
 - **Jinja Helper Function:** Exposes `frappe.is_section_row(row)` in `jinja.methods`, allowing custom print formats to detect section rows with:
   ```jinja
   {% if is_section_row(item) %}
@@ -75,15 +79,6 @@ Sections translate cleanly into printable documents and PDFs:
     <!-- Regular item row -->
   {% endif %}
   ```
-- **Print Designer (Visual Builder) Compatibility:**
-  - In visual table column settings, use conditional expressions:
-    ```jinja
-    {% if row.is_section %}{{ row.section_title }}{% else %}{{ row.item_code }}{% endif %}
-    ```
-  - In numeric columns (`Qty`, `Rate`, `Amount`):
-    ```jinja
-    {% if not row.is_section %}{{ row.get_formatted("amount", doc) }}{% endif %}
-    ```
 
 ---
 
@@ -98,34 +93,46 @@ bench get-app https://github.com/girumtibebu/emc_utils.git
 # 2. Install on your target site
 bench --site <your-site> install-app emc_utils
 
-# 3. Run migrations to install custom fields and property setters
+# 3. Run migrations to install custom fields, property setters, and sample print formats
 bench --site <your-site> migrate
 
-# 4. Clear cache and restart bench
+# 4. Clear cache
 bench --site <your-site> clear-cache
-bench restart
 ```
 
 ---
 
-## Development & Architecture
+## Modular Architecture
+
+`emc_utils` is structured modularly so individual features can be inspected, maintained, or extended independently:
 
 ```text
 emc_utils/
-├── company_scope.py     # Company switcher backend logic, tree traversal & query filters
-├── constants.py         # Scoped doctypes and print format fields
-├── hooks.py             # App hooks, asset bundles, boot_session, permission queries
-├── sections.py          # Child table validation patches, zeroing logic, Jinja methods
-├── setup.py             # Custom fields and property setters installation
-├── print_format/        # Jinja print format templates (e.g. Quotation Modern with Sections)
-└── public/
-    ├── js/
-    │   ├── company_switcher.js  # Sidebar header company toggle menu
-    │   ├── emc_utils.js         # Core child table section styling and event hooks
-    │   ├── quotation.js         # Quotation form client script hook
-    │   └── sales_order.js       # Sales Order form client script hook
-    └── css/
-        └── emc_utils.css        # Desk utility styles
+├── company_switcher/              # 🏢 Company Switcher & Multi-Company Scoping
+│   ├── company_switcher.py       # Query permission conditions, tree traversal & boot session
+│   ├── setup.py                  # Per-company default print format custom fields
+│   ├── company_switcher.js       # Desk sidebar dropdown UI
+│   └── company_switcher.css      # Sidebar & switcher styling
+│
+├── sections/                      # 📑 Universal Child Table Sections
+│   ├── sections.py               # Validation patches, zeroing logic & before_print hooks
+│   ├── setup.py                  # Child table custom fields & property setters
+│   ├── sections.js               # Universal child table section controller & DOM engine
+│   ├── quotation.js              # Quotation form script hook
+│   ├── sales_order.js            # Sales Order form script hook
+│   └── sections.css              # Espresso section rows, badges & inline inputs
+│
+├── print_designer/                # 🖨️ Frappe v16 Print Format Designer Integration
+│   ├── setup.py                  # Installs/updates sample print formats
+│   ├── quotation_sections.json   # Visual designer layout data
+│   └── quotation_sections.css    # Print section CSS editable in designer
+│
+├── public/                        # 🌐 Frappe Asset Pipeline
+│   ├── js/                       # Bundled JavaScript files served via /assets/emc_utils/js/
+│   └── css/                      # Bundled CSS stylesheets served via /assets/emc_utils/css/
+│
+├── hooks.py                       # App hooks, asset inclusions & document event routes
+└── setup.py                       # Root installer orchestrating each module's setup
 ```
 
 ---

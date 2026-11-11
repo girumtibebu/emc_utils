@@ -1,0 +1,195 @@
+{
+  "header": {
+    "columns": [
+      {
+        "label": "",
+        "fields": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "label": "",
+      "columns": [
+        {
+          "label": "",
+          "fields": [
+            {
+              "label": "Quotation Header",
+              "fieldname": "custom_html_header",
+              "fieldtype": "HTML",
+              "html": "<div style=\"text-align:center;padding:10px 0;\"><div style=\"font-size:1.6em;font-weight:700;color:#0f172a;\">Quotation</div><div style=\"color:#64748b;margin-top:4px;font-size:0.95em;\">{{ doc.name }}</div></div>",
+              "custom": 1
+            }
+          ]
+        }
+      ],
+      "margin": {"top": 5, "right": 0, "bottom": 10, "left": 0}
+    },
+    {
+      "label": "",
+      "columns": [
+        {
+          "label": "",
+          "fields": [
+            {"label": "Divider", "fieldname": "divider_top", "fieldtype": "Divider", "custom": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "label": "",
+      "columns": [
+        {
+          "label": "",
+          "fields": [
+            {
+              "label": "Customer",
+              "fieldname": "customer_name",
+              "fieldtype": "Data",
+              "custom_style": "flex-direction:column;align-items:flex-start;gap:3px;font-weight:600;"
+            },
+            {
+              "label": "Address",
+              "fieldname": "address_display",
+              "fieldtype": "Text Editor",
+              "show_label": "hide"
+            }
+          ],
+          "width": 56
+        },
+        {
+          "label": "",
+          "fields": [
+            {
+              "label": "Date",
+              "fieldname": "transaction_date",
+              "fieldtype": "Date",
+              "align": "left",
+              "label_justify": "space-between"
+            },
+            {
+              "label": "Valid Till",
+              "fieldname": "valid_till",
+              "fieldtype": "Date",
+              "align": "left",
+              "label_justify": "space-between"
+            }
+          ],
+          "width": 38
+        }
+      ],
+      "has_fields": true,
+      "field_orientation": "left-right",
+      "gap": 44,
+      "margin": {"top": 12, "right": 12, "bottom": 0, "left": 12}
+    },
+    {
+      "label": "",
+      "columns": [
+        {
+          "label": "",
+          "fields": [
+            {
+              "label": "",
+              "fieldname": "items",
+              "fieldtype": "Table",
+              "options": "Quotation Item",
+              "table_columns": [
+                {"label": "No", "fieldname": "idx", "fieldtype": "Data", "width": 5},
+                {
+                  "label": "Item",
+                  "fieldname": "item_name",
+                  "fieldtype": "Data",
+                  "width": 32
+                },
+                {"label": "Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 15},
+                {
+                  "label": "Quantity",
+                  "fieldname": "qty",
+                  "fieldtype": "Float",
+                  "width": 12,
+                  "merged_fields": [
+                    {"fieldname": "uom", "fieldtype": "Link", "style": "secondary"}
+                  ],
+                  "merge_direction": "horizontal"
+                },
+                {"label": "Rate", "fieldname": "rate", "fieldtype": "Currency", "options": "currency", "width": 18},
+                {"label": "Amount", "fieldname": "amount", "fieldtype": "Currency", "options": "currency", "width": 18}
+              ],
+              "table_bordered": false,
+              "table_header": "styled",
+              "table_cell_padding": 8,
+              "table_radius": 6,
+              "table_header_bg": "#f8fafc",
+              "table_border_color": "#e2e8f0",
+              "show_label": "hide",
+              "custom_style": ""
+            }
+          ]
+        }
+      ],
+      "has_fields": true,
+      "margin": {"top": 12, "right": 0, "bottom": 0, "left": 0}
+    },
+    {
+      "label": "",
+      "columns": [
+        {
+          "label": "",
+          "fields": [
+            {
+              "label": "Section Enhancer",
+              "fieldname": "custom_html_enhancer",
+              "fieldtype": "HTML",
+              "html": "<script>\n(function() {\n    function enhanceSections() {\n        var rows = document.querySelectorAll('tr.table-row:has([data-is-section=\"1\"]), tr.table-row:has(.emc-print-section-header)');\n        rows.forEach(function(row) {\n            row.classList.add('emc-print-section-row');\n            var cells = row.querySelectorAll('td.column-value');\n            cells.forEach(function(cell) {\n                var fn = cell.getAttribute('data-fieldname');\n                if (fn !== 'item_name' && fn !== 'idx' && fn !== 'section_title') {\n                    cell.innerHTML = '';\n                }\n            });\n        });\n    }\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', enhanceSections);\n    } else {\n        enhanceSections();\n    }\n    setTimeout(enhanceSections, 150);\n})();\n</script>",
+              "custom": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "",
+      "columns": [
+        {"label": "", "fields": [], "width": 45},
+        {
+          "label": "",
+          "fields": [
+            {
+              "label": "Sub Total",
+              "fieldname": "total",
+              "fieldtype": "Currency",
+              "options": "currency",
+              "align": "left",
+              "label_justify": "space-between"
+            },
+            {
+              "label": "Discount",
+              "fieldname": "discount_amount",
+              "fieldtype": "Currency",
+              "options": "currency",
+              "label_justify": "space-between"
+            },
+            {
+              "label": "Grand Total",
+              "fieldname": "grand_total",
+              "fieldtype": "Currency",
+              "options": "currency",
+              "align": "left",
+              "label_justify": "space-between",
+              "custom_style": "border-top:1.5px solid #0f172a;margin-top:6px;padding-top:8px;font-weight:700;",
+              "label_color": "#0f172a"
+            }
+          ],
+          "width": 49
+        }
+      ],
+      "has_fields": true,
+      "field_orientation": "left-right",
+      "gap": 44,
+      "margin": {"top": 15, "right": 12, "bottom": 0, "left": 12}
+    }
+  ],
+  "footer": {"columns": [{"label": "", "fields": []}], "show_label": "hide"}
+}

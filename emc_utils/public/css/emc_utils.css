@@ -53,6 +53,8 @@
     bottom: 0 !important;
     left: 71px !important;
     right: 0 !important;
+    width: calc(100% - 71px) !important;
+    max-width: none !important;
     z-index: 3 !important;
     display: flex !important;
     align-items: center !important;
@@ -75,9 +77,22 @@
     flex: 1 1 auto !important;
 }
 
-/* Frappe UI / Espresso Badge for Section */
+/* Frappe UI / Espresso Badge for Section - Prevent any truncation or width constraints */
+.emc-section-badge,
+.emc-section-badge span,
+.emc-section-badge .es-badge__label {
+    width: auto !important;
+    min-width: unset !important;
+    max-width: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
 .emc-section-badge {
-    cursor: grab !important;
+    cursor: default !important;
     flex-shrink: 0 !important;
     letter-spacing: 0.04em !important;
     font-weight: 600 !important;
@@ -100,6 +115,7 @@
     width: 100% !important;
     flex: 1 1 auto !important;
     min-width: 250px !important;
+    max-width: none !important;
     transition: all 0.15s ease-in-out !important;
 }
 
