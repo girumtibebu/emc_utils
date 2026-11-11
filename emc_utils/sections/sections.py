@@ -49,6 +49,19 @@ def patch_accounts_controller():
                     )
 
         AccountsController.validate_qty_is_not_zero = emc_validate_qty_is_not_zero
+
+        orig_before_print = getattr(AccountsController, "before_print", None)
+        if orig_before_print and not getattr(AccountsController, "_emc_utils_bp_patched", False):
+            def emc_before_print(self, settings=None):
+                if isinstance(settings, dict) and not isinstance(settings, frappe._dict):
+                    settings = frappe._dict(settings)
+                try:
+                    return orig_before_print(self, settings)
+                except AttributeError:
+                    pass
+            AccountsController.before_print = emc_before_print
+            AccountsController._emc_utils_bp_patched = True
+
         AccountsController._emc_utils_patched = True
     except ImportError:
         pass
@@ -98,14 +111,158 @@ def before_validate_sections(doc, method=None):
                     if hasattr(row, num_field):
                         setattr(row, num_field, 0)
 
+def extract_section_styles_from_css(css_str):
+    """Extract section visual properties from child table custom CSS, supporting sec- and --sec-."""
+    if not css_str:
+        return {}
+    import re
+    props = {}
+    mapping = {
+        "bg": ["sec-bg", "--sec-bg"],
+        "border": ["sec-border", "--sec-border"],
+        "border_width": ["sec-border-width", "--sec-border-width"],
+        "badge_bg": ["sec-badge-bg", "--sec-badge-bg"],
+        "badge_color": ["sec-badge-color", "--sec-badge-color"],
+        "badge_radius": ["sec-badge-radius", "--sec-badge-radius"],
+        "badge_display": ["sec-badge-display", "--sec-badge-display"],
+        "title_color": ["sec-title-color", "--sec-title-color"],
+        "title_size": ["sec-title-size", "--sec-title-size"],
+        "title_weight": ["sec-title-weight", "--sec-title-weight"],
+    }
+    for key, patterns in mapping.items():
+        for pat in patterns:
+            m = re.search(rf"(?:^|[;\s]){re.escape(pat)}\s*:\s*([^;!\r\n]+)", css_str, re.IGNORECASE)
+            if m:
+                props[key] = m.group(1).strip()
+                break
+    return props
+
+def generate_dynamic_section_css(props):
+    """Generate scoped CSS rules from extracted custom style properties."""
+    if not props:
+        return ""
+    rules = []
+    bg = props.get("bg")
+    border = props.get("border")
+    badge_bg = props.get("badge_bg")
+    badge_color = props.get("badge_color")
+    badge_display = props.get("badge_display")
+    title_color = props.get("title_color")
+    title_size = props.get("title_size")
+    title_weight = props.get("title_weight")
+
+    if bg or border:
+        selectors = (
+            'tr.table-row:has([data-is-section="1"]), '
+            'tr.table-row:has(.emc-print-section-header), '
+            'tr.table-row.emc-print-section-row, '
+            'tr.table-row:has([data-is-section="1"]) td, '
+            'tr.table-row:has(.emc-print-section-header) td, '
+            'tr.table-row.emc-print-section-row td'
+        )
+        decls = []
+        if bg:
+            decls.append(f"background-color: {bg} !important;")
+        if border:
+            decls.append(f"border-top-color: {border} !important; border-bottom-color: {border} !important;")
+        rules.append(f"{selectors} {{ {' '.join(decls)} }}")
+
+    b_decls = []
+    if badge_bg:
+        b_decls.append(f"background-color: {badge_bg} !important;")
+    if badge_color:
+        b_decls.append(f"color: {badge_color} !important;")
+    if badge_display:
+        b_decls.append(f"display: {badge_display} !important;")
+    if b_decls:
+        rules.append(f".emc-print-section-badge {{ {' '.join(b_decls)} }}")
+
+    t_decls = []
+    if title_color:
+        t_decls.append(f"color: {title_color} !important;")
+    if title_size:
+        t_decls.append(f"font-size: {title_size} !important;")
+    if title_weight:
+        t_decls.append(f"font-weight: {title_weight} !important;")
+    if t_decls:
+        rules.append(f".emc-print-section-title {{ {' '.join(t_decls)} }}")
+
+    if rules:
+        return f'<style id="emc-dynamic-section-css">\n' + "\n".join(rules) + "\n</style>"
+    return ""
+
 def before_print_sections(doc, method=None, print_settings=None):
     """Format section rows for print generation: add badge, bold title, and clean up empty cells."""
     if not hasattr(doc, "get"):
         return
 
     from types import MethodType
+    import json
+
+    # Detect active Print Format's child table custom_style
+    custom_style = ""
+    format_name = (
+        frappe.form_dict.get("print_format")
+        or frappe.form_dict.get("format")
+        or getattr(doc, "print_format", None)
+    )
+    if not format_name:
+        format_name = frappe.db.get_value(
+            "Property Setter",
+            {"doc_type": doc.doctype, "property": "default_print_format"},
+            "value",
+        )
+
+    if format_name and frappe.db.exists("Print Format", format_name):
+        try:
+            pf = frappe.get_doc("Print Format", format_name)
+            if pf.format_data:
+                fd = json.loads(pf.format_data)
+                for sec in fd.get("sections", []):
+                    for col in sec.get("columns", []):
+                        for fld in col.get("fields", []):
+                            if fld.get("fieldname") == "items" or fld.get("fieldtype") == "Table":
+                                custom_style = fld.get("custom_style") or ""
+                                if custom_style:
+                                    break
+        except Exception:
+            pass
+
+    if not custom_style:
+        try:
+            pfs = frappe.get_all(
+                "Print Format",
+                filters={"doc_type": doc.doctype, "print_format_builder_beta": 1, "disabled": 0},
+                fields=["name", "format_data"],
+                order_by="modified desc",
+            )
+            for p in pfs:
+                if p.format_data:
+                    fd = json.loads(p.format_data)
+                    for sec in fd.get("sections", []):
+                        for col in sec.get("columns", []):
+                            for fld in col.get("fields", []):
+                                if fld.get("fieldname") == "items" or fld.get("fieldtype") == "Table":
+                                    cs = fld.get("custom_style") or ""
+                                    if "sec-" in cs or "--sec-" in cs:
+                                        custom_style = cs
+                                        break
+                                if custom_style:
+                                    break
+                            if custom_style:
+                                break
+                    if custom_style:
+                        break
+        except Exception:
+            pass
+
+    dynamic_style_tag = ""
+    if custom_style:
+        props = extract_section_styles_from_css(custom_style)
+        dynamic_style_tag = generate_dynamic_section_css(props)
 
     meta = frappe.get_meta(doc.doctype)
+    first_section = True
     for tf in meta.get_table_fields():
         child_rows = doc.get(tf.fieldname) or []
         for row in child_rows:
@@ -113,12 +270,14 @@ def before_print_sections(doc, method=None, print_settings=None):
                 title = (getattr(row, "section_title", None) or getattr(row, "item_name", "") or "Section").strip()
 
                 # Override get_formatted on the section row to blank out non-title columns
-                orig_get_formatted = row.get_formatted
-                def custom_get_formatted(self, fieldname, *args, **kwargs):
-                    if fieldname not in ("item_name", "section_title", "idx"):
-                        return ""
-                    return orig_get_formatted(fieldname, *args, **kwargs)
-                row.get_formatted = MethodType(custom_get_formatted, row)
+                def make_custom_get_formatted(orig_fn):
+                    def custom_get_formatted(self, fieldname, *args, **kwargs):
+                        if fieldname not in ("item_name", "section_title", "idx"):
+                            return ""
+                        return orig_fn(fieldname, *args, **kwargs)
+                    return custom_get_formatted
+
+                row.get_formatted = MethodType(make_custom_get_formatted(row.get_formatted), row)
 
                 if hasattr(row, "description"):
                     row.description = ""
@@ -127,7 +286,13 @@ def before_print_sections(doc, method=None, print_settings=None):
                 if hasattr(row, "uom"):
                     row.uom = ""
 
+                style_prefix = ""
+                if first_section and dynamic_style_tag:
+                    style_prefix = dynamic_style_tag
+                    first_section = False
+
                 row.item_name = (
+                    f'{style_prefix}'
                     f'<div class="emc-print-section-header" data-is-section="1">'
                     f'<span class="emc-print-section-badge">SECTION</span>'
                     f'<span class="emc-print-section-title">{frappe.utils.escape_html(title)}</span>'

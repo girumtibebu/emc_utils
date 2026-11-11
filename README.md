@@ -132,60 +132,69 @@ During app installation and migration (`bench migrate`), `emc_utils` installs a 
 - **Builder Engine:** Beta Print Format Builder (`print_format_builder_beta = 1`)
 - **Mode:** `standard = "No"` (allowing direct visual edits and saves without requiring Frappe developer mode).
 
-### 2. Using the Print Format Designer
+### 2. Sample Print Formats for Print Format Designer (v16.50+)
+
+`emc_utils` provides two sample print formats ready for the new **Frappe v16 Print Format Designer**:
+- **`Quotation with Sections`**: Clean modern layout with pre-styled section rows.
+- **`Quotation Modern with Sections`**: Direct non-standard clone of ERPNext's official **Quotation Modern** layout, equipped with section row styling.
+
+Both formats are non-standard (`standard: "No"`), allowing you to visually drag, drop, reorder fields, change column widths, and customize fonts and colors directly in Print Format Designer without developer mode or file overrides.
+
 To customize or review the layout visually:
 1. Navigate to **Print Format List** in Desk.
-2. Open **Quotation with Sections**.
-3. Click the **Edit Format** button (or navigate directly to `/app/print-format-builder-beta/Quotation%20with%20Sections`).
+2. Open either **Quotation with Sections** or **Quotation Modern with Sections**.
+3. Click the **Edit Format** button.
 4. You will see the full visual drag-and-drop designer canvas:
    - Drag and drop fields (Company logo, Customer address, Terms and Conditions).
    - Reorder or add child table columns.
    - Adjust page sizes (A4, Letter) and margins.
 
 ### 3. Customizing Section Styling in the Designer
-You can customize the appearance of sections directly from the **Custom CSS** field of the **Child Table** in the Print Format Designer using CSS variables:
+You can customize the appearance of sections directly from the **Custom CSS** field of the **Child Table** in the Print Format Designer:
 
-#### Option A: Child Table "Custom CSS" (Recommended & Direct)
+#### Child Table "Custom CSS" (Recommended & Direct)
 When you click on the child table (`Items`) in the Print Format Designer canvas, open the right-hand **Table Inspector** under **Style > Custom CSS**.
 
-You can adjust section colors, borders, badges, and fonts using CSS variables that cascade directly to all rows:
+You can adjust section colors, borders, badges, and fonts. Both standard `--sec-` and shorthand `sec-` prefixes are accepted:
 
 ```css
 /* Container padding */
+border: 1px solid #e5e7eb;
 padding: 6px;
 
-/* Section Row Background & Borders */
---sec-bg: #f8fafc;
---sec-border: #cbd5e1;
---sec-border-width: 1.5px;
+/* Section Row Background & Borders (accepts sec- or --sec-) */
+sec-bg: #eff6ff;
+sec-border: #bfdbfe;
+sec-border-width: 1.5px;
 
 /* Section Badge */
---sec-badge-bg: #0f172a;
---sec-badge-color: #ffffff;
---sec-badge-size: 8.5px;
---sec-badge-radius: 4px;
-/* To hide the badge completely: --sec-badge-display: none; */
+sec-badge-bg: #2563eb;
+sec-badge-color: #ffffff;
+sec-badge-size: 8.5px;
+sec-badge-radius: 4px;
+/* To hide the badge completely: sec-badge-display: none; */
 
 /* Section Title Typography */
---sec-title-color: #0f172a;
---sec-title-size: 13.5px;
---sec-title-weight: 700;
+sec-title-color: #1e40af;
+sec-title-size: 13.5px;
+sec-title-weight: 700;
 ```
 
 ##### Examples:
 - **Soft Blue Theme (Matching Blue Headers):**
   ```css
-  --sec-bg: #eff6ff;
-  --sec-border: #bfdbfe;
-  --sec-badge-bg: #2563eb;
-  --sec-title-color: #1e40af;
+  sec-bg: #eff6ff;
+  sec-border: #bfdbfe;
+  sec-badge-bg: #2563eb;
+  sec-badge-color: #ffffff;
+  sec-title-color: #1e40af;
   ```
 - **Minimalist Border-Only (White background, no badge):**
   ```css
-  --sec-bg: #ffffff;
-  --sec-border: #e2e8f0;
-  --sec-badge-display: none;
-  --sec-title-color: #0f172a;
+  sec-bg: #ffffff;
+  sec-border: #e2e8f0;
+  sec-badge-display: none;
+  sec-title-color: #0f172a;
   ```
 
 *Bonus:* If you prefer writing full CSS selector rules (e.g. `tr.emc-print-section-row td { ... }`), our enhancer script automatically detects selector blocks with braces `{ ... }` inside the table's custom CSS and compiles them into active print styles!
