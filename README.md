@@ -174,6 +174,10 @@ sec-badge-size: 8.5px;
 sec-badge-radius: 4px;
 /* To hide the badge completely: sec-badge-display: none; */
 
+/* Section Row Visibility Toggles */
+sec-badge-display: none;     /* Hides the [SECTION] badge (or: sec-badge: none;) */
+sec-no-display: none;        /* Hides the row number on section rows (or: sec-no: none;) */
+
 /* Section Title Typography */
 sec-title-color: #1e40af;
 sec-title-size: 13.5px;
@@ -181,7 +185,16 @@ sec-title-weight: 700;
 ```
 
 ##### Examples:
-- **Soft Blue Theme (Matching Blue Headers):**
+- **Clean Title-Only Section (No Badge, No Row Number, Full-Width):**
+  ```css
+  sec-bg: #eff6ff;
+  sec-border: #bfdbfe;
+  sec-badge-display: none;
+  sec-no-display: none;
+  sec-title-color: #1e40af;
+  sec-title-size: 14px;
+  ```
+- **Soft Blue Theme with Badge & Number:**
   ```css
   sec-bg: #eff6ff;
   sec-border: #bfdbfe;
@@ -189,10 +202,19 @@ sec-title-weight: 700;
   sec-badge-color: #ffffff;
   sec-title-color: #1e40af;
   ```
-- **Minimalist Border-Only (White background, no badge):**
+- **Minimalist Border-Only (White background, title only):**
   ```css
   sec-bg: #ffffff;
   sec-border: #e2e8f0;
+  sec-badge-display: none;
+  sec-no-display: none;
+  sec-title-color: #0f172a;
+  ```
+
+#### Document Page Number Visibility
+To toggle the document page numbers (e.g. `Page 1 of 2`):
+- In **Print Format Designer**: Open the format, look at the canvas settings panel at the top/side, and toggle **Page numbers** to **Hide** (or choose position: `Bottom Right`, `Top Right`, etc.).
+- In **Print Settings / Print Format Form**: Set the **Page Number** dropdown to **Hide**.
   sec-badge-display: none;
   sec-title-color: #0f172a;
   ```

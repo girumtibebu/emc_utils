@@ -38,11 +38,18 @@ tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_nam
     display: none !important;
 }
 
+/* Optional Toggle: Hide/Show Row Number ('No' column) on Section Rows */
+tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"],
+tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"],
+tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {
+    display: var(--sec-no-display, var(--sec-idx-display, table-cell)) !important;
+}
+
 /* 3. Section Title Spans Across the Remaining Table */
 tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
 tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"],
 tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
-    width: 95% !important;
+    width: var(--sec-title-cell-width, 95%) !important;
     max-width: none !important;
 }
 

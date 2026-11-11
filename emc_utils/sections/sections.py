@@ -124,7 +124,12 @@ def extract_section_styles_from_css(css_str):
         "badge_bg": ["sec-badge-bg", "--sec-badge-bg"],
         "badge_color": ["sec-badge-color", "--sec-badge-color"],
         "badge_radius": ["sec-badge-radius", "--sec-badge-radius"],
-        "badge_display": ["sec-badge-display", "--sec-badge-display"],
+        "badge_display": ["sec-badge-display", "--sec-badge-display", "sec-badge", "--sec-badge"],
+        "no_display": [
+            "sec-no-display", "--sec-no-display", "sec-no", "--sec-no",
+            "sec-idx-display", "--sec-idx-display", "sec-idx", "--sec-idx",
+            "sec-number-display", "--sec-number-display", "sec-number", "--sec-number",
+        ],
         "title_color": ["sec-title-color", "--sec-title-color"],
         "title_size": ["sec-title-size", "--sec-title-size"],
         "title_weight": ["sec-title-weight", "--sec-title-weight"],
@@ -147,6 +152,7 @@ def generate_dynamic_section_css(props):
     badge_bg = props.get("badge_bg")
     badge_color = props.get("badge_color")
     badge_display = props.get("badge_display")
+    no_display = props.get("no_display")
     title_color = props.get("title_color")
     title_size = props.get("title_size")
     title_weight = props.get("title_weight")
@@ -166,6 +172,19 @@ def generate_dynamic_section_css(props):
         if border:
             decls.append(f"border-top-color: {border} !important; border-bottom-color: {border} !important;")
         rules.append(f"{selectors} {{ {' '.join(decls)} }}")
+
+    if no_display:
+        rules.append(
+            'tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"], '
+            'tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"], '
+            f'tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {{ display: {no_display} !important; }}'
+        )
+        if no_display == "none":
+            rules.append(
+                'tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"], '
+                'tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"], '
+                'tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] { width: 100% !important; max-width: none !important; }'
+            )
 
     b_decls = []
     if badge_bg:
@@ -261,6 +280,7 @@ def before_print_sections(doc, method=None, print_settings=None):
         props = extract_section_styles_from_css(custom_style)
         dynamic_style_tag = generate_dynamic_section_css(props)
 
+    hide_idx = (props.get("no_display") == "none") if dynamic_style_tag else False
     meta = frappe.get_meta(doc.doctype)
     first_section = True
     for tf in meta.get_table_fields():
@@ -270,14 +290,15 @@ def before_print_sections(doc, method=None, print_settings=None):
                 title = (getattr(row, "section_title", None) or getattr(row, "item_name", "") or "Section").strip()
 
                 # Override get_formatted on the section row to blank out non-title columns
-                def make_custom_get_formatted(orig_fn):
+                def make_custom_get_formatted(orig_fn, hide_no=False):
                     def custom_get_formatted(self, fieldname, *args, **kwargs):
-                        if fieldname not in ("item_name", "section_title", "idx"):
+                        allowed = ("item_name", "section_title") if hide_no else ("item_name", "section_title", "idx")
+                        if fieldname not in allowed:
                             return ""
                         return orig_fn(fieldname, *args, **kwargs)
                     return custom_get_formatted
 
-                row.get_formatted = MethodType(make_custom_get_formatted(row.get_formatted), row)
+                row.get_formatted = MethodType(make_custom_get_formatted(row.get_formatted, hide_idx), row)
 
                 if hasattr(row, "description"):
                     row.description = ""
