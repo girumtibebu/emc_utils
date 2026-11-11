@@ -169,6 +169,11 @@ Configure section visual styling directly from the **Child Table > Style > Custo
 | **Badge Color** | `sec-badge-color:` | `--sec-badge-color:` | Badge text color (e.g. `#ffffff`) |
 | **Badge Size** | `sec-badge-size:` | `--sec-badge-size:` | Badge font size (e.g. `8.5px`) |
 | **Badge Radius** | `sec-badge-radius:` | `--sec-badge-radius:` | Pill border radius (e.g. `4px`) |
+| **Section Total Price** | `sec-total:` / `sec-total-display:` | `--sec-total-display:` | Set to `none` to hide section total, or `show` to display |
+| **Section Total Label** | `sec-total-label:` | `--sec-total-label-display:` | Set to `none` to hide "Section Total:" label and show amount only |
+| **Section Total Color** | `sec-total-color:` | `--sec-total-color:` | Total price text color (e.g. `#0f172a`, `#1e40af`) |
+| **Section Total Background** | `sec-total-bg:` | `--sec-total-bg:` | Pill/badge background color (e.g. `#dbeafe`) |
+| **Section Total Size** | `sec-total-size:` | `--sec-total-size:` | Total price font size (e.g. `12.5px`) |
 
 #### Ready-to-Use Presets
 

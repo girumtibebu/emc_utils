@@ -133,6 +133,20 @@ def extract_section_styles_from_css(css_str):
         "title_color": ["sec-title-color", "--sec-title-color"],
         "title_size": ["sec-title-size", "--sec-title-size"],
         "title_weight": ["sec-title-weight", "--sec-title-weight"],
+        "total_display": [
+            "sec-total-display", "--sec-total-display",
+            "sec-total", "--sec-total",
+            "sec-price-display", "--sec-price-display",
+            "sec-price", "--sec-price",
+        ],
+        "total_color": ["sec-total-color", "--sec-total-color", "sec-price-color", "--sec-price-color"],
+        "total_bg": ["sec-total-bg", "--sec-total-bg", "sec-price-bg", "--sec-price-bg"],
+        "total_size": ["sec-total-size", "--sec-total-size", "sec-price-size", "--sec-price-size"],
+        "total_weight": ["sec-total-weight", "--sec-total-weight", "sec-price-weight", "--sec-price-weight"],
+        "total_label_display": [
+            "sec-total-label-display", "--sec-total-label-display",
+            "sec-total-label", "--sec-total-label",
+        ],
     }
     for key, patterns in mapping.items():
         for pat in patterns:
@@ -160,6 +174,25 @@ def generate_dynamic_section_css(props=None):
     title_weight = props.get("title_weight") or "700"
     title_transform = props.get("title_transform") or "none"
 
+    total_display_raw = (props.get("total_display") or "").strip().lower()
+    if total_display_raw in ("none", "hide", "hidden", "0", "false"):
+        total_display = "none"
+    else:
+        total_display = "inline-flex"
+
+    total_label_raw = (props.get("total_label_display") or "").strip().lower()
+    if total_label_raw in ("none", "hide", "hidden", "0", "false"):
+        total_label_display = "none"
+    else:
+        total_label_display = "inline"
+
+    total_color = props.get("total_color") or title_color
+    total_size = props.get("total_size") or "12.5px"
+    total_weight = props.get("total_weight") or "600"
+    total_bg = props.get("total_bg") or "transparent"
+    total_radius = props.get("total_radius") or "4px"
+    total_padding = "2px 7px" if total_bg != "transparent" else "0"
+
     title_cell_width = "100%" if no_display == "none" else "95%"
 
     rules = [
@@ -181,6 +214,14 @@ def generate_dynamic_section_css(props=None):
     --sec-title-weight: {title_weight} !important;
     --sec-title-transform: {title_transform} !important;
     --sec-title-cell-width: {title_cell_width} !important;
+    --sec-total-display: {total_display} !important;
+    --sec-total-label-display: {total_label_display} !important;
+    --sec-total-color: {total_color} !important;
+    --sec-total-size: {total_size} !important;
+    --sec-total-weight: {total_weight} !important;
+    --sec-total-bg: {total_bg} !important;
+    --sec-total-padding: {total_padding} !important;
+    --sec-total-radius: {total_radius} !important;
 }}""",
 
         f"""tr.table-row:has([data-is-section="1"]),
@@ -223,10 +264,20 @@ tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
 }}""",
 
         f""".emc-print-section-header {{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 12px !important;
+    padding: 2px 0 !important;
+}}
+
+.emc-print-section-main {{
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    padding: 2px 0 !important;
+    flex-wrap: wrap !important;
 }}
 
 .emc-print-section-badge {{
@@ -252,6 +303,34 @@ tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
     text-transform: {title_transform} !important;
     letter-spacing: 0.01em !important;
     display: inline-block !important;
+}}
+
+.emc-print-section-total {{
+    display: {total_display} !important;
+    align-items: center !important;
+    gap: 5px !important;
+    font-size: {total_size} !important;
+    font-weight: {total_weight} !important;
+    color: {total_color} !important;
+    background-color: {total_bg} !important;
+    padding: {total_padding} !important;
+    border-radius: {total_radius} !important;
+    white-space: nowrap !important;
+    margin-left: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}}
+
+.emc-print-section-total-label {{
+    display: {total_label_display} !important;
+    font-size: 0.9em !important;
+    opacity: 0.8 !important;
+    font-weight: 500 !important;
+}}
+
+.emc-print-section-total-amount {{
+    font-weight: {total_weight} !important;
+    font-variant-numeric: tabular-nums !important;
 }}
 
 tr.table-row:has([data-is-section="1"]) .cell-line--muted-sm,
@@ -389,9 +468,22 @@ def before_print_sections(doc, method=None, print_settings=None):
     first_section = True
     for tf in meta.get_table_fields():
         child_rows = doc.get(tf.fieldname) or []
+
+        # Precalculate section totals (sum of item.amount until the next section)
+        current_section = None
+        section_totals = {}
+        for row in child_rows:
+            if getattr(row, "is_section", 0):
+                current_section = row
+                section_totals[id(row)] = 0.0
+            elif current_section is not None:
+                section_totals[id(current_section)] += flt(getattr(row, "amount", 0))
+
         for row in child_rows:
             if getattr(row, "is_section", 0):
                 title = (getattr(row, "section_title", None) or getattr(row, "item_name", "") or "Section").strip()
+                tot = section_totals.get(id(row), 0.0)
+                formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
 
                 # Override get_formatted on the section row to blank out non-title columns
                 def make_custom_get_formatted(orig_fn, hide_no=False):
@@ -421,8 +513,14 @@ def before_print_sections(doc, method=None, print_settings=None):
                 row.item_name = (
                     f'{style_prefix}'
                     f'<div class="emc-print-section-header" data-is-section="1">'
+                    f'<div class="emc-print-section-main">'
                     f'<span class="emc-print-section-badge">SECTION</span>'
                     f'<span class="emc-print-section-title">{frappe.utils.escape_html(title)}</span>'
+                    f'</div>'
+                    f'<div class="emc-print-section-total">'
+                    f'<span class="emc-print-section-total-label">Section Total:</span>'
+                    f'<span class="emc-print-section-total-amount">{frappe.utils.escape_html(formatted_total)}</span>'
+                    f'</div>'
                     f'</div>'
                 )
 
