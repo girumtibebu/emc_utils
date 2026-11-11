@@ -292,10 +292,17 @@ window.emc_utils = window.emc_utils || {};
                 }
             }
 
+            const frm = grid_row.frm;
+            const is_doc_editable =
+                !frm ||
+                (!frm.read_only &&
+                    (!frm.doc || frm.doc.docstatus === 0) &&
+                    (typeof frm.is_form_read_only === "function" ? !frm.is_form_read_only() : true));
+
             const is_row_editable =
                 !grid_row.grid?.df?.read_only &&
                 (!grid_row.doc || grid_row.doc.docstatus === 0) &&
-                (!grid_row.frm || (!grid_row.frm.is_read_only() && grid_row.frm.doc.docstatus === 0)) &&
+                is_doc_editable &&
                 (typeof grid_row.grid?.is_editable === "function" ? grid_row.grid.is_editable() : true);
 
             const $section_input = $cell.find(".emc-section-input");
@@ -363,10 +370,17 @@ window.emc_utils = window.emc_utils || {};
         let $btn = $grid_buttons.find(".grid-add-section");
         const $add_row = $grid_buttons.find(".grid-add-row");
 
+        const frm = grid.frm;
+        const is_doc_editable =
+            !frm ||
+            (!frm.read_only &&
+                (!frm.doc || frm.doc.docstatus === 0) &&
+                (typeof frm.is_form_read_only === "function" ? !frm.is_form_read_only() : true));
+
         const is_editable =
             !grid.df.read_only &&
             !grid.cannot_add_rows &&
-            (!grid.frm || (!grid.frm.is_read_only() && grid.frm.doc && grid.frm.doc.docstatus === 0)) &&
+            is_doc_editable &&
             (typeof grid.is_editable === "function" ? grid.is_editable() : true);
 
         const add_row_hidden =
