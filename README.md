@@ -148,34 +148,37 @@ The section styling is fully editable and completely resilient to visual edits m
 #### Option A: Table Attribute "Custom CSS" (Container & Border Styling)
 When you click directly on the child table (`Items`) in the designer canvas, the right-hand **Table Inspector** opens:
 1. Under **Style**, you will find **Custom CSS** (`df.custom_style`).
-2. You can apply custom styling directly to the table container, for example:
+2. **What to put here:** Container-level CSS properties (applied inline to the `.child-table` wrapper `<div>`):
    ```css
    border: 1px solid #e5e7eb;
    padding: 6px;
    border-radius: 6px;
    ```
-3. Edits made here are saved directly to `format_data` and apply to the `.child-table` container without disrupting section rows.
+3. *Note:* Do not put selector rules like `tr { ... }` here because Frappe renders this field directly as an inline `style="..."` attribute on the table container.
 
 #### Option B: Global "Custom CSS" (Section Row Spanning & Badge Styling)
 To customize how section rows highlight, span across columns, or display badges:
-1. In the Print Format Designer, click on the page canvas (or switch to the **Settings** tab in the sidebar).
+1. In the Print Format Designer, click on any blank page canvas area (or switch to the **Settings** tab in the sidebar).
 2. Open the **Custom CSS** section (`print_format.css`).
 3. You will find the pre-configured EMC section styling rules:
    ```css
-   /* 1. Full Row Highlighting & Spanning for Section Rows */
+   /* 1. Highlight Section Rows */
    tr.table-row:has([data-is-section="1"]),
    tr.table-row:has(.emc-print-section-header),
    tr.table-row.emc-print-section-row {
-       display: flex !important;
-       width: 100% !important;
-       background-color: #f1f5f9 !important;
-       border-top: 1.5px solid #cbd5e1 !important;
-       border-bottom: 1.5px solid #cbd5e1 !important;
-       box-sizing: border-box !important;
-       align-items: center !important;
+       background-color: #f8fafc !important;
        font-weight: 700 !important;
        -webkit-print-color-adjust: exact !important;
        print-color-adjust: exact !important;
+   }
+
+   tr.table-row:has([data-is-section="1"]) td,
+   tr.table-row:has(.emc-print-section-header) td,
+   tr.table-row.emc-print-section-row td {
+       background-color: #f8fafc !important;
+       border-top: 1.5px solid #cbd5e1 !important;
+       border-bottom: 1.5px solid #cbd5e1 !important;
+       font-weight: 700 !important;
    }
 
    /* 2. Hide unneeded data columns (Qty, Rate, Amount, Code) */
@@ -187,21 +190,19 @@ To customize how section rows highlight, span across columns, or display badges:
    /* 3. Section Title Spans Remaining Width */
    tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
    tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
-       flex: 1 1 auto !important;
-       width: auto !important;
+       width: 95% !important;
        max-width: none !important;
-       padding: 8px 10px !important;
    }
 
    /* 4. Section Badge & Typography */
    .emc-print-section-badge {
        background-color: #0f172a !important;
        color: #ffffff !important;
-       font-size: 9px !important;
+       font-size: 8.5px !important;
        font-weight: 700 !important;
-       padding: 2.5px 8px !important;
+       padding: 2px 7px !important;
        border-radius: 4px !important;
-       letter-spacing: 0.06em !important;
+       letter-spacing: 0.05em !important;
        text-transform: uppercase !important;
    }
 

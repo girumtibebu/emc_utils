@@ -98,90 +98,6 @@ def before_validate_sections(doc, method=None):
                     if hasattr(row, num_field):
                         setattr(row, num_field, 0)
 
-SECTION_PRINT_CSS = """
-/* EMC Section Row Styling */
-tr.table-row:has([data-is-section="1"]),
-tr.table-row:has(.emc-print-section-header),
-tr.table-row.emc-print-section-row {
-    display: flex !important;
-    width: 100% !important;
-    background-color: #f1f5f9 !important;
-    border-top: 1.5px solid #cbd5e1 !important;
-    border-bottom: 1.5px solid #cbd5e1 !important;
-    box-sizing: border-box !important;
-    align-items: center !important;
-    font-weight: 700 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-}
-tr.table-row:has([data-is-section="1"]) td.column-value,
-tr.table-row:has(.emc-print-section-header) td.column-value,
-tr.table-row.emc-print-section-row td.column-value {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]),
-tr.table-row:has(.emc-print-section-header) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]),
-tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]) {
-    display: none !important;
-}
-tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"],
-tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"],
-tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {
-    flex: 0 0 auto !important;
-    width: 45px !important;
-    min-width: 45px !important;
-    max-width: 45px !important;
-    padding: 8px 6px !important;
-    font-weight: 700 !important;
-    color: #475569 !important;
-}
-tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
-tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"],
-tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
-    flex: 1 1 auto !important;
-    width: auto !important;
-    max-width: none !important;
-    padding: 8px 10px !important;
-}
-.emc-print-section-header {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-}
-.emc-print-section-badge {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
-    font-size: 9px !important;
-    font-weight: 700 !important;
-    padding: 2.5px 8px !important;
-    border-radius: 4px !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    display: inline-block !important;
-    flex-shrink: 0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-}
-.emc-print-section-title {
-    font-size: 13.5px !important;
-    font-weight: 700 !important;
-    color: #0f172a !important;
-    letter-spacing: 0.01em !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    line-height: 1.4 !important;
-}
-tr.table-row:has([data-is-section="1"]) .cell-line--muted-sm,
-tr.table-row.emc-print-section-row .cell-line--muted-sm {
-    display: none !important;
-}
-"""
-
 def before_print_sections(doc, method=None, print_settings=None):
     """Format section rows for print generation: add badge, bold title, and clean up empty cells."""
     if not hasattr(doc, "get"):
@@ -190,7 +106,6 @@ def before_print_sections(doc, method=None, print_settings=None):
     from types import MethodType
 
     meta = frappe.get_meta(doc.doctype)
-    first_section = True
     for tf in meta.get_table_fields():
         child_rows = doc.get(tf.fieldname) or []
         for row in child_rows:
@@ -212,18 +127,12 @@ def before_print_sections(doc, method=None, print_settings=None):
                 if hasattr(row, "uom"):
                     row.uom = ""
 
-                header_html = (
+                row.item_name = (
                     f'<div class="emc-print-section-header" data-is-section="1">'
                     f'<span class="emc-print-section-badge">SECTION</span>'
                     f'<span class="emc-print-section-title">{frappe.utils.escape_html(title)}</span>'
                     f'</div>'
                 )
-
-                if first_section:
-                    first_section = False
-                    row.item_name = f'<style>{SECTION_PRINT_CSS}</style>' + header_html
-                else:
-                    row.item_name = header_html
 
 def is_section_row(row):
     """Helper method for Jinja print templates."""
