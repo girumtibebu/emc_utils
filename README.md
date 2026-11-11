@@ -2,34 +2,70 @@
 
 [![Frappe Framework](https://img.shields.io/badge/Frappe-v15%20%7C%20v16-blue.svg)](https://frappeframework.com/)
 [![ERPNext](https://img.shields.io/badge/ERPNext-v15%20%7C%20v16-brightgreen.svg)](https://erpnext.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](license.txt)
 
-A unified utility app for Frappe Framework & ERPNext that replaces fragmented client/server scripts with upgrade-safe, configurable modules:
+A modular, upgrade-safe utility app for **Frappe Framework & ERPNext (v15 / v16)** designed to replace fragmented client and server scripts with clean, domain-isolated modules:
 
-- **Universal Child Table Sections:** Add clean, draggable visual section dividers and headings directly inside transactional child tables (Quotations, Sales Orders, Invoices, Purchase Orders, etc.) with Frappe UI / Espresso design elements.
-- **Company Switcher & Multi-Company Scoping:** Switch between companies from the Desk sidebar and scope document lists and link searches to selected companies (supporting flat and group hierarchies).
-- **Per-Company Print Formats:** Configure brand-specific default print formats per company.
-- **Sectioned Modern Print Templates:** Full-width section dividers that seamlessly translate from Desk view to PDF and print formats.
+1. **Universal Child Table Sections:** Add clean, draggable visual section dividers and headings directly inside transactional child tables (Quotations, Sales Orders, Invoices, Purchase Orders) with Espresso UI badges, full-width inputs, and financial zeroing.
+2. **Company Switcher & Multi-Company Scoping:** Filter Desk lists and link searches across multiple companies using a sidebar toggle menu, with support for flat and nested company hierarchies.
+3. **Per-Company Default Print Formats:** Configure brand-specific print templates on each Company record without mutating site-wide defaults.
+4. **Frappe v16 Print Format Designer Integration:** Standard sample formats (`Quotation with Sections`) pre-configured for Frappe v16's visual Print Format Designer (`print_format_builder_beta: 1`), featuring full-row section highlights, suppression of zero amounts/rates/quantities, and an editable Custom CSS panel.
 
 ---
 
-## Features
+## Modular Architecture
 
-### 1. Universal Child Table Sections
+`emc_utils` organizes every feature into self-contained sub-domains. Each domain owns its backend Python logic, database setup, client-side JavaScript, and CSS styles:
 
-Organize long transactional item tables into logical groups and categories (e.g., *Phase 1: Hardware*, *Phase 2: Installation*, *Optional Accessories*).
+```text
+emc_utils/
+│
+├── company_switcher/               # 🏢 Company Switcher & Multi-Company Scoping Domain
+│   ├── __init__.py                 # Public domain exports
+│   ├── company_switcher.py        # Tree traversal, user scope resolution, and query filter conditions
+│   ├── setup.py                   # Custom field definitions for Company DocType
+│   ├── company_switcher.js        # Desk sidebar toggle menu UI
+│   └── company_switcher.css       # Sidebar header styling
+│
+├── sections/                       # 📑 Universal Child Table Sections Domain
+│   ├── __init__.py                 # Public domain exports
+│   ├── sections.py                # Server-side validation bypass, zeroing logic, before_print hook
+│   ├── setup.py                   # Custom fields (is_section, section_title) & Property Setters
+│   ├── sections.js                # Core DOM controller, grid row formatter, and keyboard handlers
+│   ├── quotation.js               # Quotation form script hook & save-before-print interception
+│   ├── sales_order.js             # Sales Order form script hook & save-before-print interception
+│   └── sections.css               # High-contrast Espresso badges, section rows, and inputs
+│
+├── print_designer/                 # 🖨️ Frappe v16 Print Format Designer Integration
+│   ├── __init__.py                 # Public domain exports
+│   ├── setup.py                   # Automated installer/updater for standard sample print formats
+│   ├── quotation_sections.json    # Visual designer format_data layout
+│   └── quotation_sections.css     # Section print styling exposed in designer's Custom CSS panel
+│
+├── public/                         # 🌐 Bundled Frappe Asset Pipeline (/assets/emc_utils/...)
+│   ├── js/                        # sections.js, company_switcher.js, quotation.js, sales_order.js
+│   └── css/                       # sections.css, company_switcher.css, emc_utils.css
+│
+├── constants.py                    # Shared DocType lists and field name mappings
+├── hooks.py                        # Frappe app configuration, asset bundle links, doc_events
+└── setup.py                        # Root setup orchestrator (executes sub-domain setup routines)
+```
 
-- **Frappe UI / Espresso Design:** Uses native Espresso buttons (`.es-button`), pill badges (`.es-badge`), and design tokens matching Frappe v16's modern Desk aesthetic.
-- **Inline Title Editing:** Click and type section headings directly inline with real-time sync. Supports both Light and Dark Desk themes with high-contrast typography.
-- **Drag-and-Drop Reordering:** Section rows include drag handles on the `SECTION` badge and row number, allowing items to be dragged and organized between sections using SortableJS.
-- **Zero Financial Impact:** Quantities, rates, amounts, net totals, and stock quantities on section rows are strictly zeroed out automatically—protecting invoice totals, taxes, and ledgers.
-- **Multi-Layer Validation Protection:**
-  - Dynamic `Property Setter` layer: `reqd: 0` with `mandatory_depends_on: eval:!doc.is_section`.
-  - Client-side save validation bypass (`frappe.ui.form.check_mandatory`).
-  - Server-side mandatory check bypass (`Document._get_missing_mandatory_fields`).
-  - Quantity validation bypass (`AccountsController.validate_qty_is_not_zero`).
+---
 
-#### Supported Child Tables Out-of-the-Box:
+## Feature 1: Universal Child Table Sections
+
+Organize complex bill-of-materials and multi-phase quotations into clean visual sections (e.g. *Phase 1: Civil Works*, *Phase 2: Hardware Delivery*, *Optional Services*).
+
+### Key Highlights
+- **Native Espresso UI:** Styled with Frappe v16 design tokens, solid gray pill badges (`.es-badge`), and full-width inline input fields.
+- **Zero Financial / Stock Impact:** Quantities, rates, amounts, net totals, and stock quantities on section rows are strictly zeroed out automatically on the client and validated on the server.
+- **Save-on-Print Protection:** Switching to Print Preview or pressing `Ctrl+P` on an unsaved quote automatically triggers `frm.save()`, ensuring all section titles and child rows are persisted to the database and displayed accurately in the print preview without data loss upon returning to Desk.
+- **Double-Layer Title Persistence:** In addition to immediate `locals` synchronization, active section titles are cached in `sessionStorage` to prevent title loss across rapid route switches.
+- **No Accidental Row Modal:** Clicking anywhere on a section row focuses the title input instead of opening the child row edit modal (`GridRowForm`).
+- **Natural Column Sizing:** Hides standard cell contents on section rows using `visibility: hidden; pointer-events: none;`, keeping Frappe’s column resizing engine perfectly synchronized across all rows.
+
+### Supported Child Tables
 - `Quotation Item`
 - `Sales Order Item`
 - `Sales Invoice Item`
@@ -38,102 +74,206 @@ Organize long transactional item tables into logical groups and categories (e.g.
 - `Delivery Note Item`
 - `Purchase Receipt Item`
 
----
+### Section Functions & Implementation Reference
 
-### 2. Company Switcher & Multi-Company Scoping
+#### Server-Side (`emc_utils/sections/sections.py`)
+| Function | Purpose |
+| :--- | :--- |
+| `patch_all()` | Bootstraps global patches for Document validation and AccountsController. |
+| `patch_document_mandatory()` | Bypasses Frappe's `_get_missing_mandatory_fields` for rows where `is_section == 1`. |
+| `patch_accounts_controller()` | Patches `AccountsController.validate_qty_is_not_zero` to allow zero quantity on section rows. |
+| `before_validate_sections(doc, method=None)` | Document event triggered before validation; zeroes financial fields and syncs `section_title` to `item_name` and `description`. |
+| `before_print_sections(doc, method=None, print_settings=None)` | Prepares section rows for printing by injecting the `.emc-print-section-header` container and blanking unneeded data columns. |
+| `is_section_row(row)` | Jinja helper method exposed in `frappe.is_section_row(item)`. |
 
-Designed for ERPNext setups running multiple operating entities or holding groups.
-
-- **Desk Sidebar Integration:** A "Companies" toggle menu is embedded into the Desk sidebar header menu.
-- **Flexible Scope:** Select all companies, individual companies, or entire parent groups (ticking a group automatically includes all child companies).
-- **Automatic List Filtering:** Narrows list views, reports, and link lookups using `permission_query_conditions` for all company-scoped doctypes (Selling, Buying, Accounts, Stock, CRM, HR, Assets).
-- **Cross-Device Persistence:** Choices are saved to user defaults (`company_switcher_scope`) and follow users across devices and sessions.
-
----
-
-### 3. Per-Company Default Print Formats
-
-Print documents with company-specific templates without changing site-wide defaults:
-- Configurable on each **Company** record under the **Print Formats** section.
-- Supports per-company defaults for Quotations, Sales Orders, Sales Invoices, Delivery Notes, and Purchase Orders.
-- Automatically applied on form refresh (`apply_company_print_format`).
-
----
-
-### 4. Modern Sectioned Print Formats & Print Format Designer
-
-Sections translate cleanly into printable documents and PDFs:
-
-- **Frappe v16 Print Format Designer Compatible:** Includes `Quotation with Sections`, built with Frappe's modern Print Format Builder Beta (`print_format_builder_beta: 1`).
-  - Visually customize columns, headers, footers, and margins in the Print Format Designer (`/app/print-format-builder-beta/Quotation%20with%20Sections`).
-  - Includes custom CSS editor integration: Open the Designer sidebar -> **Custom CSS** to tweak section colors, badge background, borders, and typography.
-  - Automatically suppresses zero rates, quantities, and unneeded cells on section rows.
-- **Save Protection on Print Preview:** Switching to Print Preview or pressing `Ctrl+P` on an unsaved quote automatically triggers `frm.save()`, ensuring newly added sections and titles are persisted to the database and accurately rendered in the preview without data loss when returning to Desk.
-- **Jinja Helper Function:** Exposes `frappe.is_section_row(row)` in `jinja.methods`, allowing custom print formats to detect section rows with:
-  ```jinja
-  {% if is_section_row(item) %}
-    <tr class="section-divider-row">
-      <td colspan="5"><strong>{{ item.section_title or item.item_name }}</strong></td>
-    </tr>
-  {% else %}
-    <!-- Regular item row -->
-  {% endif %}
-  ```
+#### Client-Side (`emc_utils/sections/sections.js`, `quotation.js`, `sales_order.js`)
+| Function | Purpose |
+| :--- | :--- |
+| `emc.format_row(grid_row)` | Renders the `.emc-section-cell` overlay banner, binds inline typing events, and enforces non-truncated badge styling. |
+| `emc.add_section(grid)` | Appends a new child row with default values (`is_section: 1`, `qty: 0`, `rate: 0`) and focuses the title field. |
+| `emc.setup_grid_buttons(grid)` | Adds the **Add section** button next to Frappe's native **Add Row** button. |
+| `frm.print_doc` (hooked) | Checks `frm.is_dirty()`; if unsaved changes exist, executes `frm.save()` before navigating to the print route. |
 
 ---
 
-## Installation
+## Feature 2: Company Switcher & Multi-Company Scoping
 
-Inside your bench directory:
+Designed for ERPNext environments running multiple subsidiaries, holding companies, or branches.
+
+### Key Highlights
+- **Desk Header Menu:** Adds a **Companies** toggle submenu at the top of the Desk sidebar.
+- **Tree-Aware Filtering:** Supports flat and nested company structures. Selecting a group company automatically includes all trading child companies under it.
+- **Automatic Scoping:** Filters list views, reports, and link lookups using `permission_query_conditions` for all company-scoped doctypes (Sales, Purchases, Invoices, General Ledger, Stock).
+- **Cross-Session Persistence:** Selected scope is saved to User Defaults (`company_switcher_scope`) and persists across devices and browser sessions.
+
+### Company Switcher Functions & Implementation Reference
+
+#### Server-Side (`emc_utils/company_switcher/company_switcher.py`)
+| Function | Purpose |
+| :--- | :--- |
+| `get_companies()` | Returns all company records including tree boundaries (`lft`, `rgt`, `is_group`, `parent_company`). |
+| `get_allowed_companies(user=None)` | Returns trading companies permitted for the user based on Frappe User Permissions. |
+| `get_scope(user=None)` | Retrieves the user's currently selected company scope from User Defaults. |
+| `get_switcher()` | Whitelisted RPC returning company tree hierarchy and active scope to the client. |
+| `set_scope(companies)` | Whitelisted RPC saving the user's selected companies and updating default company. |
+| `get_permission_query_conditions(user=None)` | Generates SQL conditions restricting doctype queries to the active company scope. |
+| `boot_session(bootinfo)` | Injects company switcher metadata and per-company print format mappings into `frappe.boot`. |
+
+---
+
+## Feature 3: Frappe v16 Print Format Designer Integration
+
+`emc_utils` provides complete out-of-the-box compatibility with the new visual **Print Format Designer** introduced in Frappe v16 (`print_format_builder_beta: 1`).
+
+### 1. The Pre-Configured Sample Format: `Quotation with Sections`
+During app installation and migration (`bench migrate`), `emc_utils` installs a standard sample format:
+- **DocType:** `Quotation`
+- **Format Name:** `Quotation with Sections`
+- **Builder Engine:** Beta Print Format Builder (`print_format_builder_beta = 1`)
+- **Mode:** `standard = "No"` (allowing direct visual edits and saves without requiring Frappe developer mode).
+
+### 2. Using the Print Format Designer
+To customize or review the layout visually:
+1. Navigate to **Print Format List** in Desk.
+2. Open **Quotation with Sections**.
+3. Click the **Edit Format** button (or navigate directly to `/app/print-format-builder-beta/Quotation%20with%20Sections`).
+4. You will see the full visual drag-and-drop designer canvas:
+   - Drag and drop fields (Company logo, Customer address, Terms and Conditions).
+   - Reorder or add child table columns.
+   - Adjust page sizes (A4, Letter) and margins.
+
+### 3. Customizing Section Styling in the Designer
+The section styling is decoupled and controlled via clean CSS. You can customize the look of your sections right from the designer UI:
+
+1. In the Print Format Designer, open the right-hand **Inspector Sidebar**.
+2. Click the **Custom CSS** section.
+3. You will find the pre-configured EMC section styling rules:
+   ```css
+   /* 1. Full Row Highlighting for Section Rows */
+   tr.table-row:has([data-is-section="1"]),
+   tr.table-row.emc-print-section-row {
+       background-color: #f8fafc !important;
+       border-top: 1.5px solid #cbd5e1 !important;
+       border-bottom: 1.5px solid #cbd5e1 !important;
+       font-weight: 700 !important;
+   }
+
+   /* 2. Section Header Container & Typography */
+   .emc-print-section-header {
+       display: inline-flex !important;
+       align-items: center !important;
+       gap: 8px !important;
+       padding: 3px 0 !important;
+   }
+
+   .emc-print-section-badge {
+       background-color: #1e293b !important;
+       color: #ffffff !important;
+       font-size: 8.5px !important;
+       font-weight: 700 !important;
+       padding: 2px 7px !important;
+       border-radius: 4px !important;
+       text-transform: uppercase !important;
+   }
+
+   .emc-print-section-title {
+       font-size: 13.5px !important;
+       font-weight: 700 !important;
+       color: #0f172a !important;
+   }
+
+   /* 3. Suppress Quantities, Rates, and Amounts on Section Rows */
+   tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
+   tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]) {
+       color: transparent !important;
+       font-size: 0 !important;
+       user-select: none !important;
+   }
+   ```
+4. Modify background colors (e.g., `#f1f5f9` or brand color), change badge borders, or font size, and click **Save**. The changes apply immediately in both the visual preview and PDF generation!
+
+### 4. Compatibility with Traditional Jinja Print Formats
+If you maintain classic or custom Jinja print templates, you can format section rows using `frappe.is_section_row(row)`:
+```html
+<tbody>
+  {% for item in doc.items %}
+    {% if frappe.is_section_row(item) %}
+      <tr class="section-row" style="background:#f1f5f9; font-weight:bold;">
+        <td colspan="6" style="padding:10px;">
+          <span class="badge" style="background:#000; color:#fff; padding:2px 6px; border-radius:4px;">SECTION</span>
+          {{ item.section_title or item.item_name }}
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td>{{ item.idx }}</td>
+        <td>{{ item.item_name }}</td>
+        <td>{{ item.item_code }}</td>
+        <td>{{ item.qty }}</td>
+        <td>{{ item.get_formatted("rate") }}</td>
+        <td>{{ item.get_formatted("amount") }}</td>
+      </tr>
+    {% endif %}
+  {% endfor %}
+</tbody>
+```
+
+---
+
+## Installation & Setup
+
+### 1. Install via Bench
+From your Frappe bench directory:
 
 ```bash
-# 1. Get the app from GitHub
+# Fetch repository
 bench get-app https://github.com/girumtibebu/emc_utils.git
 
-# 2. Install on your target site
-bench --site <your-site> install-app emc_utils
+# Install app on target site
+bench --site emcy.localhost install-app emc_utils
 
-# 3. Run migrations to install custom fields, property setters, and sample print formats
-bench --site <your-site> migrate
+# Run database migrations (sets up custom fields, property setters, and sample print formats)
+bench --site emcy.localhost migrate
 
-# 4. Clear cache
-bench --site <your-site> clear-cache
+# Clear cache
+bench --site emcy.localhost clear-cache
+```
+
+### 2. Updating / Upgrading
+When pulling the latest updates from GitHub:
+
+```bash
+cd apps/emc_utils
+git pull origin main
+bench --site emcy.localhost migrate
+bench --site emcy.localhost clear-cache
 ```
 
 ---
 
-## Modular Architecture
+## Extending `emc_utils`: Adding New Customizations
 
-`emc_utils` is structured modularly so individual features can be inspected, maintained, or extended independently:
+Thanks to the modular architecture, adding a new customization (e.g. `barcode_scanner` or `approval_flow`) takes 4 simple steps:
 
-```text
-emc_utils/
-├── company_switcher/              # 🏢 Company Switcher & Multi-Company Scoping
-│   ├── company_switcher.py       # Query permission conditions, tree traversal & boot session
-│   ├── setup.py                  # Per-company default print format custom fields
-│   ├── company_switcher.js       # Desk sidebar dropdown UI
-│   └── company_switcher.css      # Sidebar & switcher styling
-│
-├── sections/                      # 📑 Universal Child Table Sections
-│   ├── sections.py               # Validation patches, zeroing logic & before_print hooks
-│   ├── setup.py                  # Child table custom fields & property setters
-│   ├── sections.js               # Universal child table section controller & DOM engine
-│   ├── quotation.js              # Quotation form script hook
-│   ├── sales_order.js            # Sales Order form script hook
-│   └── sections.css              # Espresso section rows, badges & inline inputs
-│
-├── print_designer/                # 🖨️ Frappe v16 Print Format Designer Integration
-│   ├── setup.py                  # Installs/updates sample print formats
-│   ├── quotation_sections.json   # Visual designer layout data
-│   └── quotation_sections.css    # Print section CSS editable in designer
-│
-├── public/                        # 🌐 Frappe Asset Pipeline
-│   ├── js/                       # Bundled JavaScript files served via /assets/emc_utils/js/
-│   └── css/                      # Bundled CSS stylesheets served via /assets/emc_utils/css/
-│
-├── hooks.py                       # App hooks, asset inclusions & document event routes
-└── setup.py                       # Root installer orchestrating each module's setup
-```
+1. **Create the feature package:**
+   ```bash
+   mkdir -p emc_utils/my_feature
+   touch emc_utils/my_feature/__init__.py
+   touch emc_utils/my_feature/my_feature.py
+   touch emc_utils/my_feature/setup.py
+   ```
+2. **Define setup routines in `my_feature/setup.py`:**
+   Add any custom fields, property setters, or records your feature needs.
+3. **Connect to the root orchestrator (`emc_utils/setup.py`):**
+   ```python
+   from emc_utils.my_feature.setup import setup_feature as setup_my_feature
+
+   def after_migrate():
+       ...
+       setup_my_feature()
+   ```
+4. **Register assets & hooks in `emc_utils/hooks.py`:**
+   Add JavaScript or CSS files under `app_include_js` / `app_include_css` or DocType hooks under `doc_events`.
 
 ---
 
