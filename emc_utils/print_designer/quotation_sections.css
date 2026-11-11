@@ -26,31 +26,28 @@ tr.table-row.emc-print-section-row td {
     background-color: var(--sec-bg, #f8fafc) !important;
     border-top: var(--sec-border-top, var(--sec-border-width, 1.5px) solid var(--sec-border, #cbd5e1)) !important;
     border-bottom: var(--sec-border-bottom, var(--sec-border-width, 1.5px) solid var(--sec-border, #cbd5e1)) !important;
+    border-left: none !important;
+    border-right: none !important;
     font-weight: 700 !important;
+    vertical-align: middle !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
 }
 
-/* 2. Hide Unneeded Data Columns on Section Rows */
-tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
-tr.table-row:has(.emc-print-section-header) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
-tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]) {
-    display: none !important;
-}
-
-/* Optional Toggle: Hide/Show Row Number ('No' column) on Section Rows */
+/* 2. Optional Toggle: Hide/Show Row Number ('No' column) on Section Rows without removing cells */
 tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"],
 tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"],
 tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {
-    display: var(--sec-no-display, var(--sec-idx-display, table-cell)) !important;
+    color: var(--sec-idx-color, transparent) !important;
+    font-size: var(--sec-idx-size, 0) !important;
+    user-select: none !important;
 }
 
-/* 3. Section Title Spans Across the Remaining Table */
-tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
-tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"],
-tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
-    width: var(--sec-title-cell-width, 95%) !important;
-    max-width: none !important;
+/* 3. Section Total / Amount Column Alignment */
+tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="amount"],
+tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="amount"],
+tr.table-row.emc-print-section-row td.column-value[data-fieldname="amount"] {
+    text-align: right !important;
 }
 
 /* 4. Section Header Container & Typography */
@@ -144,6 +141,8 @@ tr.table-row.emc-print-section-subtotal-row td {
     background-color: var(--sec-subtotal-bg, #f8fafc) !important;
     border-top: var(--sec-subtotal-border-top, 1.5px solid var(--sec-subtotal-border, #cbd5e1)) !important;
     border-bottom: var(--sec-subtotal-border-bottom, 2px solid var(--sec-title-color, #0f172a)) !important;
+    border-left: none !important;
+    border-right: none !important;
     padding-top: 7px !important;
     padding-bottom: 7px !important;
     font-weight: 700 !important;

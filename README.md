@@ -38,9 +38,18 @@ emc_utils/
 │
 ├── print_designer/                 # 🖨️ Frappe v16 Print Format Designer Integration
 │   ├── __init__.py                 # Public domain exports
-│   ├── setup.py                   # Automated installer/updater for standard sample print formats
-│   ├── quotation_sections.json    # Visual designer format_data layout
+│   ├── setup.py                   # Automated installer/updater for sample print formats
+│   ├── quotation_sections.json    # Visual designer format_data layout (header totals)
+│   ├── quotation_subtotals.json   # Visual designer format_data layout (dedicated subtotal rows)
+│   ├── quotation_modern_sections.json
+│   ├── quotation_modern_subtotals.json
 │   └── quotation_sections.css     # Section print styling exposed in designer's Custom CSS panel
+│
+├── print_format/                   # 📄 Bundled Standard Print Formats (auto-synced to site)
+│   ├── quotation_with_sections/
+│   ├── quotation_with_section_subtotals/
+│   ├── quotation_modern_with_sections/
+│   └── quotation_modern_with_subtotals/
 │
 ├── public/                         # 🌐 Bundled Frappe Asset Pipeline (/assets/emc_utils/...)
 │   ├── js/                        # sections.js, company_switcher.js, quotation.js, sales_order.js

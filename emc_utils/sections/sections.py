@@ -264,7 +264,13 @@ def generate_dynamic_section_css(props=None):
     subtotal_amount_size = props.get("subtotal_amount_size") or "13.5px"
     subtotal_amount_weight = props.get("subtotal_amount_weight") or "800"
 
-    title_cell_width = "100%" if no_display == "none" else "95%"
+    idx_raw = (props.get("no_display") or "none").strip().lower()
+    if idx_raw in ("table-cell", "show", "yes", "true", "1", "inline", "block"):
+        idx_color = "inherit"
+        idx_size = "inherit"
+    else:
+        idx_color = "transparent"
+        idx_size = "0"
 
     rules = [
         f""":root, html, body, .print-format, .child-table, tr.table-row, tr.table-row td {{
@@ -281,12 +287,13 @@ def generate_dynamic_section_css(props=None):
     --sec-badge-display: {badge_display} !important;
     --sec-no-display: {no_display} !important;
     --sec-idx-display: {no_display} !important;
+    --sec-idx-color: {idx_color} !important;
+    --sec-idx-size: {idx_size} !important;
     --sec-title-color: {title_color} !important;
     --sec-title-size: {title_size} !important;
     --sec-title-weight: {title_weight} !important;
     --sec-title-transform: {title_transform} !important;
     --sec-title-display: {title_display} !important;
-    --sec-title-cell-width: {title_cell_width} !important;
     --sec-total-position: {total_pos} !important;
     --sec-total-display: {total_display} !important;
     --sec-total-label-display: {total_label_display} !important;
@@ -327,28 +334,26 @@ tr.table-row.emc-print-section-row td {{
     background-color: {bg} !important;
     border-top: {border_width} solid {border} !important;
     border-bottom: {border_width} solid {border} !important;
+    border-left: none !important;
+    border-right: none !important;
     font-weight: {title_weight} !important;
+    vertical-align: middle !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
 }}""",
 
-        """tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
-tr.table-row:has(.emc-print-section-header) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
-tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]) {
-    display: none !important;
-}""",
-
         f"""tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"],
 tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"],
 tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {{
-    display: {no_display} !important;
+    color: {idx_color} !important;
+    font-size: {idx_size} !important;
+    user-select: none !important;
 }}
 
-tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
-tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"],
-tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {{
-    width: {title_cell_width} !important;
-    max-width: none !important;
+tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="amount"],
+tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="amount"],
+tr.table-row.emc-print-section-row td.column-value[data-fieldname="amount"] {{
+    text-align: right !important;
 }}""",
 
         f""".emc-print-section-header {{
@@ -435,6 +440,8 @@ tr.table-row.emc-print-section-subtotal-row td {{
     background-color: {subtotal_bg} !important;
     border-top: 1.5px solid {subtotal_border} !important;
     border-bottom: {subtotal_border_bottom} !important;
+    border-left: none !important;
+    border-right: none !important;
     padding-top: 7px !important;
     padding-bottom: 7px !important;
     font-weight: {subtotal_weight} !important;
@@ -625,6 +632,7 @@ def before_print_sections(doc, method=None, print_settings=None):
     no_display_raw = (props.get("no_display") or "none").strip().lower() if props else "none"
     hide_idx = (no_display_raw not in ("table-cell", "show", "yes", "true", "1", "inline", "block"))
     item_no_mode = (props.get("item_no") or "continuous").strip().lower() if props else "continuous"
+    total_pos = (props.get("total_pos") or "header").strip().lower() if props else "header"
     meta = frappe.get_meta(doc.doctype)
     first_section = True
     for tf in meta.get_table_fields():
@@ -701,16 +709,25 @@ def before_print_sections(doc, method=None, print_settings=None):
                 tot = section_totals.get(id(row), 0.0)
                 formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
 
-                # Override get_formatted on the section row to blank out non-title columns
-                def make_custom_get_formatted(orig_fn, hide_no=True):
+                has_header_total = total_pos in ("header", "both")
+                # Override get_formatted on the section row to blank out non-title columns while keeping cell structure
+                def make_custom_get_formatted(orig_fn, hide_no=True, has_ht=False, total_val=""):
                     def custom_get_formatted(self, fieldname, *args, **kwargs):
-                        allowed = ("item_name", "section_title") if hide_no else ("item_name", "section_title", "idx")
-                        if fieldname not in allowed:
-                            return ""
-                        return orig_fn(fieldname, *args, **kwargs)
+                        if fieldname == "item_name":
+                            return orig_fn("item_name", *args, **kwargs)
+                        elif fieldname == "amount" and has_ht:
+                            return (
+                                f'<div class="emc-print-section-total" data-is-section="1">'
+                                f'<span class="emc-print-section-total-label">Section Total: </span>'
+                                f'<span class="emc-print-section-total-amount">{total_val}</span>'
+                                f'</div>'
+                            )
+                        elif fieldname == "idx" and not hide_no:
+                            return orig_fn("idx", *args, **kwargs)
+                        return ""
                     return custom_get_formatted
 
-                row.get_formatted = MethodType(make_custom_get_formatted(row.get_formatted, hide_idx), row)
+                row.get_formatted = MethodType(make_custom_get_formatted(row.get_formatted, hide_idx, has_header_total, formatted_total), row)
 
                 if hasattr(row, "description"):
                     row.description = ""
@@ -732,10 +749,6 @@ def before_print_sections(doc, method=None, print_settings=None):
                     f'<div class="emc-print-section-main">'
                     f'<span class="emc-print-section-badge">SECTION</span>'
                     f'<span class="emc-print-section-title">{frappe.utils.escape_html(title)}</span>'
-                    f'</div>'
-                    f'<div class="emc-print-section-total">'
-                    f'<span class="emc-print-section-total-label">Section Total:</span>'
-                    f'<span class="emc-print-section-total-amount">{frappe.utils.escape_html(formatted_total)}</span>'
                     f'</div>'
                     f'</div>'
                 )
