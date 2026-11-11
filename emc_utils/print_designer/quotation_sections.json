@@ -124,7 +124,7 @@
               "table_header_bg": "#f8fafc",
               "table_border_color": "#e2e8f0",
               "show_label": "hide",
-              "custom_style": ""
+              "custom_style": "border: 1px solid #e5e7eb; padding: 6px;"
             }
           ]
         }
@@ -142,7 +142,7 @@
               "label": "Section Enhancer",
               "fieldname": "custom_html_enhancer",
               "fieldtype": "HTML",
-              "html": "<script>\n(function() {\n    function enhanceSections() {\n        var rows = document.querySelectorAll('tr.table-row:has([data-is-section=\"1\"]), tr.table-row:has(.emc-print-section-header)');\n        rows.forEach(function(row) {\n            row.classList.add('emc-print-section-row');\n            var cells = row.querySelectorAll('td.column-value');\n            cells.forEach(function(cell) {\n                var fn = cell.getAttribute('data-fieldname');\n                if (fn !== 'item_name' && fn !== 'idx' && fn !== 'section_title') {\n                    cell.innerHTML = '';\n                }\n            });\n        });\n    }\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', enhanceSections);\n    } else {\n        enhanceSections();\n    }\n    setTimeout(enhanceSections, 150);\n})();\n</script>",
+              "html": "<script>\n(function() {\n    function enhanceSections() {\n        var headers = document.querySelectorAll('.emc-print-section-header, [data-is-section=\"1\"]');\n        headers.forEach(function(h) {\n            var row = h.closest('tr');\n            if (row && !row.classList.contains('emc-print-section-row')) {\n                row.classList.add('emc-print-section-row');\n                var cells = row.querySelectorAll('td.column-value');\n                var itemCell = row.querySelector('td.column-value[data-fieldname=\"item_name\"]');\n                if (itemCell && cells.length > 2) {\n                    itemCell.colSpan = cells.length - 1;\n                }\n                cells.forEach(function(cell) {\n                    var fn = cell.getAttribute('data-fieldname');\n                    if (fn !== 'item_name' && fn !== 'idx' && fn !== 'section_title') {\n                        cell.style.display = 'none';\n                    }\n                });\n            }\n        });\n    }\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', enhanceSections);\n    } else {\n        enhanceSections();\n    }\n    setTimeout(enhanceSections, 100);\n    setTimeout(enhanceSections, 500);\n})();\n</script>",
               "custom": 1
             }
           ]

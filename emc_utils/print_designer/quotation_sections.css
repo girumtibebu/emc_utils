@@ -1,38 +1,85 @@
 /* ==========================================================================
    EMC Section Row Styling - Print Format Designer
-   Editable in Print Format Designer -> Sidebar -> Custom CSS
+   Editable in Print Format Designer -> Table -> Style -> Custom CSS
+   or Print Settings -> Custom CSS
    ========================================================================== */
 
-/* 1. Full Row Highlighting for Section Rows */
+/* 1. Full Row Highlighting & Spanning for Section Rows */
 tr.table-row:has([data-is-section="1"]),
 tr.table-row:has(.emc-print-section-header),
 tr.table-row.emc-print-section-row {
-    background-color: #f8fafc !important;
+    display: flex !important;
+    width: 100% !important;
+    background-color: #f1f5f9 !important;
     border-top: 1.5px solid #cbd5e1 !important;
     border-bottom: 1.5px solid #cbd5e1 !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
     font-weight: 700 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
-/* 2. Section Header Container & Typography */
+/* Ensure child td elements inherit background and remove conflicting cell borders */
+tr.table-row:has([data-is-section="1"]) td.column-value,
+tr.table-row:has(.emc-print-section-header) td.column-value,
+tr.table-row.emc-print-section-row td.column-value {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. Hide all non-title, non-idx data columns completely on section rows */
+tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]),
+tr.table-row:has(.emc-print-section-header) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]),
+tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]) {
+    display: none !important;
+}
+
+/* 3. Index Column (Row number) */
+tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"],
+tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"],
+tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {
+    flex: 0 0 auto !important;
+    width: 45px !important;
+    min-width: 45px !important;
+    max-width: 45px !important;
+    padding: 8px 6px !important;
+    font-weight: 700 !important;
+    color: #475569 !important;
+}
+
+/* 4. Section Title Cell - Flex 1 to take all remaining width! */
+tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
+tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"],
+tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 8px 10px !important;
+}
+
+/* 5. Section Header & Badge Typography */
 .emc-print-section-header {
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    padding: 3px 0 !important;
+    width: 100% !important;
 }
 
 .emc-print-section-badge {
-    background-color: #1e293b !important;
+    background-color: #0f172a !important;
     color: #ffffff !important;
-    font-size: 8.5px !important;
+    font-size: 9px !important;
     font-weight: 700 !important;
-    padding: 2px 7px !important;
+    padding: 2.5px 8px !important;
     border-radius: 4px !important;
-    letter-spacing: 0.05em !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     display: inline-block !important;
+    flex-shrink: 0 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
 }
@@ -42,19 +89,12 @@ tr.table-row.emc-print-section-row {
     font-weight: 700 !important;
     color: #0f172a !important;
     letter-spacing: 0.01em !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.4 !important;
 }
 
-/* 3. Hide Unneeded Data Columns on Section Rows (Qty, Rate, Amount, Item Code) */
-tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
-tr.table-row:has(.emc-print-section-header) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
-tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]) {
-    color: transparent !important;
-    font-size: 0 !important;
-    user-select: none !important;
-    border-color: #cbd5e1 !important;
-}
-
-/* 4. Hide empty description line in merged item cell for sections */
+/* 6. Hide empty description line in merged item cell for sections */
 tr.table-row:has([data-is-section="1"]) .cell-line--muted-sm,
 tr.table-row.emc-print-section-row .cell-line--muted-sm {
     display: none !important;
