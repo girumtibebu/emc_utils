@@ -215,9 +215,7 @@ window.emc_utils = window.emc_utils || {};
                 badge_html = `<span class="es-badge emc-section-badge" data-size="sm" data-variant="solid"><span class="es-badge__label">${__("SECTION")}</span></span>`;
             }
 
-            const doc_key = (grid_row.frm ? (grid_row.frm.doctype + "_" + grid_row.frm.docname) : "") + "_" + (grid_row.doc.name || "");
-            const cached_title = doc_key ? sessionStorage.getItem("emc_sec_" + doc_key) : null;
-            let title = grid_row.doc.section_title || grid_row.doc.item_name || grid_row.doc.description || cached_title || "";
+            let title = grid_row.doc.section_title || grid_row.doc.item_name || grid_row.doc.description || "";
 
             if (!grid_row.doc.section_title && title) {
                 grid_row.doc.section_title = title;
@@ -244,7 +242,7 @@ window.emc_utils = window.emc_utils || {};
                 }
             }
 
-            // Bind input and keyboard events
+            // Bind input and keyboard events strictly to the current row doc
             $cell
                 .off("click.emc mousedown.emc")
                 .on("click.emc mousedown.emc", function (e) {
@@ -260,19 +258,9 @@ window.emc_utils = window.emc_utils || {};
                     grid_row.doc.item_name = val;
                     grid_row.doc.description = val;
 
-                    if (doc_key) {
-                        try {
-                            sessionStorage.setItem("emc_sec_" + doc_key, val);
-                        } catch (e) {}
-                    }
-
                     if (grid_row.frm) {
                         grid_row.frm.dirty();
                     }
-
-                    frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "section_title", val);
-                    frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "item_name", val);
-                    frappe.model.set_value(grid_row.doc.doctype, grid_row.doc.name, "description", val);
                 })
                 .on("keydown.emc", function (e) {
                     if (e.key === "Enter") {
@@ -349,20 +337,24 @@ window.emc_utils = window.emc_utils || {};
     emc.add_section = function (grid) {
         const row = grid.add_new_row(null, null, false, null, true);
         if (row) {
-            frappe.model.set_value(row.doctype, row.name, "is_section", 1);
-            frappe.model.set_value(row.doctype, row.name, "section_title", __("New Section"));
-            frappe.model.set_value(row.doctype, row.name, "item_name", __("New Section"));
-            frappe.model.set_value(row.doctype, row.name, "description", __("New Section"));
-            frappe.model.set_value(row.doctype, row.name, "qty", 0);
-            frappe.model.set_value(row.doctype, row.name, "rate", 0);
-            frappe.model.set_value(row.doctype, row.name, "amount", 0);
-            frappe.model.set_value(row.doctype, row.name, "uom", "Unit");
-            frappe.model.set_value(row.doctype, row.name, "conversion_factor", 1);
+            row.is_section = 1;
+            row.section_title = __("New Section");
+            row.item_name = __("New Section");
+            row.description = __("New Section");
+            row.qty = 0;
+            row.rate = 0;
+            row.amount = 0;
+            row.uom = "Unit";
+            row.conversion_factor = 1;
+
+            if (grid.frm) {
+                grid.frm.dirty();
+            }
 
             grid.refresh();
 
             setTimeout(() => {
-                const grid_row = grid.grid_rows_by_docname && grid.grid_rows_by_docname[row.name];
+                const grid_row = grid.grid_rows_by_docname && row.name && grid.grid_rows_by_docname[row.name];
                 if (grid_row && grid_row.row) {
                     emc.format_row(grid_row);
                     const $inp = grid_row.row.find(".emc-section-input");
