@@ -158,6 +158,9 @@ def extract_section_styles_from_css(css_str):
         "subtotal_border": ["sec-subtotal-border", "--sec-subtotal-border"],
         "subtotal_size": ["sec-subtotal-size", "--sec-subtotal-size"],
         "subtotal_weight": ["sec-subtotal-weight", "--sec-subtotal-weight"],
+        "subtotal_badge_bg": ["sec-subtotal-badge-bg", "--sec-subtotal-badge-bg"],
+        "subtotal_badge_color": ["sec-subtotal-badge-color", "--sec-subtotal-badge-color"],
+        "subtotal_badge_display": ["sec-subtotal-badge-display", "--sec-subtotal-badge-display", "sec-subtotal-badge", "--sec-subtotal-badge"],
     }
     for key, patterns in mapping.items():
         for pat in patterns:
@@ -217,8 +220,15 @@ def generate_dynamic_section_css(props=None):
     subtotal_bg = props.get("subtotal_bg") or bg
     subtotal_color = props.get("subtotal_color") or title_color
     subtotal_border = props.get("subtotal_border") or border
-    subtotal_size = props.get("subtotal_size") or "12.5px"
+    subtotal_size = props.get("subtotal_size") or "13px"
     subtotal_weight = props.get("subtotal_weight") or "700"
+    subtotal_badge_bg = props.get("subtotal_badge_bg") or title_color
+    subtotal_badge_color = props.get("subtotal_badge_color") or "#ffffff"
+    subtotal_badge_display_raw = (props.get("subtotal_badge_display") or "").strip().lower()
+    if subtotal_badge_display_raw in ("none", "hide", "hidden", "0", "false"):
+        subtotal_badge_display = "none"
+    else:
+        subtotal_badge_display = "inline-block"
 
     title_cell_width = "100%" if no_display == "none" else "95%"
 
@@ -256,6 +266,9 @@ def generate_dynamic_section_css(props=None):
     --sec-subtotal-border: {subtotal_border} !important;
     --sec-subtotal-size: {subtotal_size} !important;
     --sec-subtotal-weight: {subtotal_weight} !important;
+    --sec-subtotal-badge-bg: {subtotal_badge_bg} !important;
+    --sec-subtotal-badge-color: {subtotal_badge_color} !important;
+    --sec-subtotal-badge-display: {subtotal_badge_display} !important;
 }}""",
 
         f"""tr.table-row:has([data-is-section="1"]),
@@ -379,44 +392,61 @@ tr.table-row.emc-print-section-subtotal-row {{
 tr.table-row:has([data-is-section-subtotal="1"]) td,
 tr.table-row.emc-print-section-subtotal-row td {{
     background-color: {subtotal_bg} !important;
-    border-top: 1px dashed {subtotal_border} !important;
-    border-bottom: 1.5px solid {subtotal_border} !important;
+    border-top: 1.5px solid {subtotal_border} !important;
+    border-bottom: 2px solid {title_color} !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
     font-weight: {subtotal_weight} !important;
+    vertical-align: middle !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
 }}
 
-tr.table-row:has([data-is-section-subtotal="1"]) td.column-value:not([data-fieldname="item_name"]),
-tr.table-row.emc-print-section-subtotal-row td.column-value:not([data-fieldname="item_name"]) {{
-    display: none !important;
+tr.table-row:has([data-is-section-subtotal="1"]) td.column-value[data-fieldname="amount"],
+tr.table-row.emc-print-section-subtotal-row td.column-value[data-fieldname="amount"] {{
+    text-align: right !important;
 }}
 
-tr.table-row:has([data-is-section-subtotal="1"]) td.column-value[data-fieldname="item_name"],
-tr.table-row.emc-print-section-subtotal-row td.column-value[data-fieldname="item_name"] {{
-    width: 100% !important;
-    max-width: none !important;
-}}
-
-.emc-print-section-subtotal-header {{
-    display: flex !important;
+.emc-print-subtotal-cell {{
+    display: inline-flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    padding: 3px 0 !important;
-    gap: 12px !important;
-    color: {subtotal_color} !important;
-    font-size: {subtotal_size} !important;
+    gap: 8px !important;
+    line-height: 1.3 !important;
 }}
 
-.emc-print-section-subtotal-label {{
-    font-weight: {subtotal_weight} !important;
-    letter-spacing: 0.01em !important;
-}}
-
-.emc-print-section-subtotal-amount {{
+.emc-print-subtotal-badge {{
+    background-color: {subtotal_badge_bg} !important;
+    color: {subtotal_badge_color} !important;
+    font-size: 8px !important;
     font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    text-transform: uppercase !important;
+    display: {subtotal_badge_display} !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}}
+
+.emc-print-subtotal-title {{
+    font-size: {subtotal_size} !important;
+    font-weight: {subtotal_weight} !important;
+    color: {subtotal_color} !important;
+    letter-spacing: 0.01em !important;
+    white-space: nowrap !important;
+}}
+
+.emc-print-subtotal-amount {{
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
     font-variant-numeric: tabular-nums !important;
+    color: {subtotal_color} !important;
+    text-align: right !important;
+    display: block !important;
+    width: 100% !important;
+    white-space: nowrap !important;
 }}
 
 tr.table-row:has([data-is-section="1"]) .cell-line--muted-sm,
@@ -568,6 +598,20 @@ def before_print_sections(doc, method=None, print_settings=None):
             elif current_section is not None:
                 section_totals[id(current_section)] += flt(getattr(row, "amount", 0))
 
+        def make_subtotal_get_formatted(title, val):
+            def custom_get_formatted(self, fieldname, *args, **kwargs):
+                if fieldname == "item_name":
+                    return (
+                        f'<div class="emc-print-subtotal-cell" data-is-section-subtotal="1">'
+                        f'<span class="emc-print-subtotal-badge">SUBTOTAL</span>'
+                        f'<span class="emc-print-subtotal-title">{title}</span>'
+                        f'</div>'
+                    )
+                elif fieldname == "amount":
+                    return f'<div class="emc-print-subtotal-amount" data-is-section-subtotal="1">{val}</div>'
+                return ""
+            return custom_get_formatted
+
         # Build list of child rows with injected subtotal summary rows
         new_child_rows = []
         cur_sec = None
@@ -577,26 +621,12 @@ def before_print_sections(doc, method=None, print_settings=None):
                     tot = section_totals.get(id(cur_sec), 0.0)
                     formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
                     sec_title = (getattr(cur_sec, "section_title", None) or getattr(cur_sec, "item_name", "") or "Section").strip()
-                    sub_label = f"Subtotal ({sec_title}):"
 
                     sub_row = copy.copy(cur_sec)
                     sub_row.is_section = 0
                     sub_row.is_section_subtotal = 1
                     sub_row.idx = None
-
-                    def make_subtotal_get_formatted(lbl, val):
-                        def custom_get_formatted(self, fieldname, *args, **kwargs):
-                            if fieldname == "item_name":
-                                return (
-                                    f'<div class="emc-print-section-subtotal-header" data-is-section-subtotal="1">'
-                                    f'<span class="emc-print-section-subtotal-label">{lbl}</span>'
-                                    f'<span class="emc-print-section-subtotal-amount">{val}</span>'
-                                    f'</div>'
-                                )
-                            return ""
-                        return custom_get_formatted
-
-                    sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sub_label, formatted_total), sub_row)
+                    sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sec_title, formatted_total), sub_row)
                     new_child_rows.append(sub_row)
 
                 cur_sec = row
@@ -607,26 +637,12 @@ def before_print_sections(doc, method=None, print_settings=None):
             tot = section_totals.get(id(cur_sec), 0.0)
             formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
             sec_title = (getattr(cur_sec, "section_title", None) or getattr(cur_sec, "item_name", "") or "Section").strip()
-            sub_label = f"Subtotal ({sec_title}):"
 
             sub_row = copy.copy(cur_sec)
             sub_row.is_section = 0
             sub_row.is_section_subtotal = 1
             sub_row.idx = None
-
-            def make_subtotal_get_formatted(lbl, val):
-                def custom_get_formatted(self, fieldname, *args, **kwargs):
-                    if fieldname == "item_name":
-                        return (
-                            f'<div class="emc-print-section-subtotal-header" data-is-section-subtotal="1">'
-                            f'<span class="emc-print-section-subtotal-label">{lbl}</span>'
-                            f'<span class="emc-print-section-subtotal-amount">{val}</span>'
-                            f'</div>'
-                        )
-                    return ""
-                return custom_get_formatted
-
-            sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sub_label, formatted_total), sub_row)
+            sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sec_title, formatted_total), sub_row)
             new_child_rows.append(sub_row)
 
         doc.set(tf.fieldname, new_child_rows)
