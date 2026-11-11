@@ -3,90 +3,77 @@ window.emc_utils = window.emc_utils || {};
 
 (function (emc) {
     const CSS = `
-        /* Expand child table grid container and form grid to fit all columns */
-        .form-grid-container > .form-grid {
-            width: max-content !important;
-            min-width: 100% !important;
-        }
-
-        .form-grid .grid-body .rows > .grid-row {
-            width: 100% !important;
-        }
-
         /* Espresso Section Row in Child Table */
-        .grid-row.emc-grid-section-row,
-        .data-row.emc-grid-section-row {
+        .grid-row.emc-grid-section-row {
             background-color: var(--surface-gray-2, #f8fafc) !important;
             border-top: 1px solid var(--outline-gray-2, #e2e8f0) !important;
             border-bottom: 1px solid var(--outline-gray-2, #e2e8f0) !important;
-            border-left: 3px solid var(--surface-gray-10, #334155) !important;
+            cursor: default !important;
             min-height: 38px !important;
         }
 
         [data-theme="dark"] .grid-row.emc-grid-section-row,
-        [data-theme="dark"] .data-row.emc-grid-section-row,
-        .dark .grid-row.emc-grid-section-row,
-        .dark .data-row.emc-grid-section-row {
+        .dark .grid-row.emc-grid-section-row {
             background-color: var(--surface-gray-3, #1e293b) !important;
             border-top-color: var(--outline-gray-2, #334155) !important;
             border-bottom-color: var(--outline-gray-2, #334155) !important;
-            border-left-color: var(--surface-gray-10, #94a3b8) !important;
         }
 
         .data-row.emc-grid-section-row {
-            width: 100% !important;
-            min-width: 100% !important;
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            align-items: center !important;
+            position: relative !important;
+            background-color: transparent !important;
+            cursor: default !important;
         }
 
-        /* Checkbox and Index columns stay sticky on left */
+        /* Row checkbox and index: stay visible and sticky on left */
         .data-row.emc-grid-section-row .row-check,
         .data-row.emc-grid-section-row .row-index {
-            background-color: inherit !important;
-            z-index: 3 !important;
+            position: sticky !important;
+            background-color: var(--surface-gray-2, #f8fafc) !important;
+            z-index: 4 !important;
         }
 
-        /* Section Title & Badge: Sticky positioning at left 71px (right next to row-index) */
+        [data-theme="dark"] .data-row.emc-grid-section-row .row-check,
+        [data-theme="dark"] .data-row.emc-grid-section-row .row-index,
+        .dark .data-row.emc-grid-section-row .row-check,
+        .dark .data-row.emc-grid-section-row .row-index {
+            background-color: var(--surface-gray-3, #1e293b) !important;
+        }
+
+        /* Hide contents of data columns and action button in section row while preserving exact underlying column widths */
+        .data-row.emc-grid-section-row .col.grid-static-col:not(.row-index),
+        .data-row.emc-grid-section-row .col:last-child {
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        /* Section overlay banner: spans from left 71px to the right end of the row */
         .data-row.emc-grid-section-row .emc-section-cell {
-            position: sticky !important;
+            position: absolute !important;
+            top: 0 !important;
+            bottom: 0 !important;
             left: 71px !important;
-            z-index: 2 !important;
-            flex: 0 1 auto !important;
-            width: auto !important;
-            min-width: 280px !important;
-            max-width: calc(100vw - 160px) !important;
+            right: 0 !important;
+            z-index: 3 !important;
             display: flex !important;
             align-items: center !important;
-            padding: 3px 10px !important;
-            background-color: inherit !important;
+            padding: 2px 14px !important;
+            background-color: var(--surface-gray-2, #f8fafc) !important;
+            border: none !important;
+            cursor: default !important;
+        }
+
+        [data-theme="dark"] .data-row.emc-grid-section-row .emc-section-cell,
+        .dark .data-row.emc-grid-section-row .emc-section-cell {
+            background-color: var(--surface-gray-3, #1e293b) !important;
         }
 
         .emc-section-inner {
             display: flex !important;
             align-items: center !important;
-            gap: 10px !important;
+            gap: 12px !important;
             width: 100% !important;
-        }
-
-        /* Hide standard child table data columns in section rows */
-        .data-row.emc-grid-section-row .col.grid-static-col:not(.row-index) {
-            display: none !important;
-        }
-
-        /* Keep the open form pencil button pinned at the far right */
-        .data-row.emc-grid-section-row .col:last-child {
-            max-width: 30px !important;
-            min-width: 30px !important;
-            position: sticky !important;
-            right: 0 !important;
-            z-index: 3 !important;
-            background-color: inherit !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            margin-left: auto !important;
+            flex: 1 1 auto !important;
         }
 
         /* Frappe UI / Espresso Badge for Section */
@@ -95,11 +82,12 @@ window.emc_utils = window.emc_utils || {};
             flex-shrink: 0 !important;
             letter-spacing: 0.04em !important;
             font-weight: 600 !important;
+            user-select: none !important;
         }
 
-        /* Clean Espresso-compatible Input with Guaranteed High-Contrast Visibility */
+        /* Clean Espresso-compatible Input with Full-Width Expansion and Guaranteed High-Contrast Visibility */
         .emc-section-input {
-            font-size: 13px !important;
+            font-size: 13.5px !important;
             font-weight: 600 !important;
             color: var(--text-color, #111827) !important;
             -webkit-text-fill-color: var(--text-color, #111827) !important;
@@ -108,10 +96,11 @@ window.emc_utils = window.emc_utils || {};
             border: 1px dashed transparent !important;
             border-radius: var(--radius-sm, 6px) !important;
             box-shadow: none !important;
-            height: 28px !important;
-            padding: 2px 8px !important;
+            height: 30px !important;
+            padding: 2px 10px !important;
             width: 100% !important;
-            min-width: 180px !important;
+            flex: 1 1 auto !important;
+            min-width: 250px !important;
             transition: all 0.15s ease-in-out !important;
         }
 
@@ -162,7 +151,21 @@ window.emc_utils = window.emc_utils || {};
         frappe.ui.form.__emc_check_mandatory_patched = true;
     };
 
-    // 2. Format a single grid row with Frappe UI badge and section input
+    // 2. Permanently prevent section rows from opening modal/form view
+    emc.patch_grid_row_toggle_view = function () {
+        if (frappe.ui?.form?.GridRow && !frappe.ui.form.GridRow.__emc_toggle_view_patched) {
+            const orig_toggle_view = frappe.ui.form.GridRow.prototype.toggle_view;
+            frappe.ui.form.GridRow.prototype.toggle_view = function (show, callback) {
+                if (this.doc && this.doc.is_section) {
+                    return this;
+                }
+                return orig_toggle_view.apply(this, arguments);
+            };
+            frappe.ui.form.GridRow.__emc_toggle_view_patched = true;
+        }
+    };
+
+    // 3. Format a single grid row with Frappe UI badge and section input
     emc.format_row = function (grid_row) {
         if (!grid_row || !grid_row.row || !grid_row.doc) return;
         const $row = grid_row.row;
@@ -172,17 +175,16 @@ window.emc_utils = window.emc_utils || {};
             $row.addClass("emc-grid-section-row");
             if ($wrapper) $wrapper.addClass("emc-grid-section-row");
 
-            // Hide standard child table data columns in section row
-            $row.find(".grid-static-col:not(.row-index)").hide();
-
-            // Match width with grid header row so background and sticky elements span entire scrollable grid
-            if (grid_row.grid && grid_row.grid.wrapper) {
-                const header_row = grid_row.grid.wrapper.find(".grid-heading-row .data-row");
-                const w = header_row.outerWidth();
-                if (w && w > 0) {
-                    $row.css("min-width", w + "px");
+            // Disable row click opening modal
+            $row.off("click.emc_row").on("click.emc_row", function (e) {
+                if ($(e.target).hasClass("grid-row-check") || $(e.target).is(":checkbox")) {
+                    return;
                 }
-            }
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                $row.find(".emc-section-input").focus();
+                return false;
+            });
 
             let $cell = $row.find(".emc-section-cell");
             if (!$cell.length) {
@@ -202,7 +204,7 @@ window.emc_utils = window.emc_utils || {};
                 const title = grid_row.doc.section_title || grid_row.doc.item_name || "";
 
                 $cell = $(`
-                    <div class="col emc-section-cell">
+                    <div class="emc-section-cell">
                         <div class="emc-section-inner">
                             ${badge_html}
                             <input type="text" class="form-control emc-section-input" value="${frappe.utils.escape_html(title)}" placeholder="${__("Section Title...")}">
@@ -210,29 +212,19 @@ window.emc_utils = window.emc_utils || {};
                     </div>
                 `);
 
-                const $row_index = $row.find(".row-index");
-                if ($row_index.length) {
-                    $cell.insertAfter($row_index);
-                } else {
-                    $row.append($cell);
-                }
-            }
-
-            // Ensure the open form button (edit pencil) is visible and at the end of the row
-            if (grid_row.open_form_button && grid_row.open_form_button.length) {
-                grid_row.open_form_button.show();
-                if ($row.children().last()[0] !== grid_row.open_form_button[0]) {
-                    $row.append(grid_row.open_form_button);
-                }
+                $row.append($cell);
             }
 
             // Bind input and keyboard events
             $cell
-                .find(".emc-section-input")
-                .off("click.emc mousedown.emc input.emc blur.emc keydown.emc")
+                .off("click.emc mousedown.emc")
                 .on("click.emc mousedown.emc", function (e) {
                     e.stopPropagation();
-                })
+                });
+
+            $cell
+                .find(".emc-section-input")
+                .off("input.emc blur.emc keydown.emc")
                 .on("input.emc blur.emc", function () {
                     const val = $(this).val();
                     if (grid_row.doc.section_title !== val) {
@@ -250,13 +242,12 @@ window.emc_utils = window.emc_utils || {};
         } else {
             $row.removeClass("emc-grid-section-row");
             if ($wrapper) $wrapper.removeClass("emc-grid-section-row");
+            $row.off("click.emc_row");
             $row.find(".emc-section-cell").remove();
-            $row.find(".grid-static-col:not(.row-index)").show();
-            $row.css("min-width", "");
         }
     };
 
-    // 3. Setup grid buttons (Add section)
+    // 4. Setup grid buttons (Add section)
     emc.setup_grid_buttons = function (grid) {
         if (!grid || !grid.wrapper || !grid.df || grid.df.read_only) return;
 
@@ -299,7 +290,7 @@ window.emc_utils = window.emc_utils || {};
         $btn.removeClass("hidden d-none");
     };
 
-    // 4. Add section row with safe default values
+    // 5. Add section row with safe default values
     emc.add_section = function (grid) {
         const row = grid.add_new_row(null, null, false, null, true);
         if (row) {
@@ -328,9 +319,10 @@ window.emc_utils = window.emc_utils || {};
         }
     };
 
-    // 5. Permanent GridRow and Grid prototype hooks
+    // 6. Permanent GridRow and Grid prototype hooks
     emc.install_patches = function () {
         emc.patch_check_mandatory();
+        emc.patch_grid_row_toggle_view();
 
         if (frappe.ui?.form?.GridRow && !frappe.ui.form.GridRow.__emc_patched) {
             const orig_render_row = frappe.ui.form.GridRow.prototype.render_row;
@@ -362,7 +354,7 @@ window.emc_utils = window.emc_utils || {};
         }
     };
 
-    // 6. Direct grid setup helper
+    // 7. Direct grid setup helper
     emc.setup_grid = function (grid) {
         if (!grid) return;
         emc.install_patches();
@@ -372,7 +364,7 @@ window.emc_utils = window.emc_utils || {};
         }
     };
 
-    // 7. Form setup entrypoint
+    // 8. Form setup entrypoint
     emc.setup_form_grid_sections = function (frm) {
         if (!frm || !frm.fields) return;
         emc.install_patches();
