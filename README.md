@@ -163,22 +163,29 @@ Configure section visual styling directly from the **Child Table > Style > Custo
 | **Title Size** | `sec-title-size:` | `--sec-title-size:` | Font size (e.g. `14px`, `1rem`) |
 | **Title Weight** | `sec-title-weight:` | `--sec-title-weight:` | Font weight (`normal`, `600`, `700`, `bold`) |
 | **Title Transform** | `sec-title-transform:` | `--sec-title-transform:` | Text casing (`uppercase`, `capitalize`, `none`) |
-| **Row Number Visibility** | `sec-no-display:` | `--sec-no-display:` | Set to `none` to hide row number on section rows |
+| **Section Header Visibility** | `sec-display:` | `--sec-display:` | `show` (default) or `none` to hide section headers |
+| **Row Number Visibility** | `sec-no-display:` / `sec-no:` | `--sec-no-display:` | `none` (default: skip numbering on section rows) or `show` |
+| **Item Numbering Mode** | `sec-item-no:` | `--sec-item-no:` | `continuous` (default: 1, 2, 3, 4...), `section` (reset per section 1, 2...), or `original` (database idx) |
 | **Badge Visibility** | `sec-badge-display:` | `--sec-badge-display:` | Set to `none` to hide the `[SECTION]` badge |
 | **Badge Background** | `sec-badge-bg:` | `--sec-badge-bg:` | Badge pill background color (e.g. `#2563eb`) |
 | **Badge Color** | `sec-badge-color:` | `--sec-badge-color:` | Badge text color (e.g. `#ffffff`) |
 | **Badge Size** | `sec-badge-size:` | `--sec-badge-size:` | Badge font size (e.g. `8.5px`) |
 | **Badge Radius** | `sec-badge-radius:` | `--sec-badge-radius:` | Pill border radius (e.g. `4px`) |
-| **Section Total Position** | `sec-total-position:` | `--sec-total-position:` | `header` (inline on section bar), `bottom` (dedicated row after items), `both`, or `none` |
+| **Section Total Position** | `sec-total-position:` | `--sec-total-position:` | `bottom` (dedicated row), `header` (inline on section bar), `both`, or `none` |
 | **Section Total Price** | `sec-total:` / `sec-total-display:` | `--sec-total-display:` | Set to `none` to hide section total, or `show` to display |
 | **Section Total Label** | `sec-total-label:` | `--sec-total-label-display:` | Set to `none` to hide "Section Total:" label and show amount only |
 | **Section Total Color** | `sec-total-color:` | `--sec-total-color:` | Total price text color (e.g. `#0f172a`, `#1e40af`) |
 | **Section Total Background** | `sec-total-bg:` | `--sec-total-bg:` | Pill/badge background color (e.g. `#dbeafe`) |
 | **Section Total Size** | `sec-total-size:` | `--sec-total-size:` | Total price font size (e.g. `12.5px`) |
-| **Subtotal Row Background** | `sec-subtotal-bg:` | `--sec-subtotal-bg:` | Background color of dedicated subtotal row |
-| **Subtotal Row Border** | `sec-subtotal-border:` | `--sec-subtotal-border:` | Border color of dedicated subtotal row |
-| **Subtotal Row Color** | `sec-subtotal-color:` | `--sec-subtotal-color:` | Text color of dedicated subtotal row |
-| **Subtotal Row Size** | `sec-subtotal-size:` | `--sec-subtotal-size:` | Font size of subtotal row (e.g. `12.5px`) |
+| **Subtotal Row Background** | `sec-subtotal-bg:` | `--sec-subtotal-bg:` | Background color of dedicated subtotal row (e.g. `#f8fafc`) |
+| **Subtotal Row Top Border** | `sec-subtotal-border:` | `--sec-subtotal-border:` | Top border color of dedicated subtotal row |
+| **Subtotal Row Bottom Border** | `sec-subtotal-border-bottom:` | `--sec-subtotal-border-bottom:` | Bottom border style (e.g. `2px solid #0f172a`, `3px double #94a3b8`) |
+| **Subtotal Row Color** | `sec-subtotal-color:` | `--sec-subtotal-color:` | Text and amount color of dedicated subtotal row |
+| **Subtotal Row Size** | `sec-subtotal-size:` | `--sec-subtotal-size:` | Font size of subtotal title (e.g. `13px`) |
+| **Subtotal Badge Visibility** | `sec-subtotal-badge:` | `--sec-subtotal-badge-display:` | `show` (default) or `none` to hide `[SUBTOTAL]` pill badge |
+| **Subtotal Badge Background** | `sec-subtotal-badge-bg:` | `--sec-subtotal-badge-bg:` | Subtotal pill badge background color |
+| **Subtotal Badge Color** | `sec-subtotal-badge-color:` | `--sec-subtotal-badge-color:` | Subtotal pill badge text color |
+| **Subtotal Amount Size** | `sec-subtotal-amount-size:` | `--sec-subtotal-amount-size:` | Subtotal amount font size (e.g. `13.5px`) |
 
 #### Ready-to-Use Presets
 

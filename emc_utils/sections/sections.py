@@ -161,6 +161,11 @@ def extract_section_styles_from_css(css_str):
         "subtotal_badge_bg": ["sec-subtotal-badge-bg", "--sec-subtotal-badge-bg"],
         "subtotal_badge_color": ["sec-subtotal-badge-color", "--sec-subtotal-badge-color"],
         "subtotal_badge_display": ["sec-subtotal-badge-display", "--sec-subtotal-badge-display", "sec-subtotal-badge", "--sec-subtotal-badge"],
+        "sec_display": ["sec-display", "--sec-display", "sec-section-display", "--sec-section-display"],
+        "item_no": ["sec-item-no", "--sec-item-no", "sec-item-number", "--sec-item-number", "sec-items-no", "--sec-items-no"],
+        "subtotal_border_bottom": ["sec-subtotal-border-bottom", "--sec-subtotal-border-bottom"],
+        "subtotal_amount_size": ["sec-subtotal-amount-size", "--sec-subtotal-amount-size"],
+        "subtotal_amount_weight": ["sec-subtotal-amount-weight", "--sec-subtotal-amount-weight"],
     }
     for key, patterns in mapping.items():
         for pat in patterns:
@@ -182,7 +187,19 @@ def generate_dynamic_section_css(props=None):
     badge_size = props.get("badge_size") or "8.5px"
     badge_radius = props.get("badge_radius") or "4px"
     badge_display = props.get("badge_display") or "inline-block"
-    no_display = props.get("no_display") or "table-cell"
+
+    no_display_raw = (props.get("no_display") or "none").strip().lower()
+    if no_display_raw in ("table-cell", "show", "yes", "true", "1", "inline", "block"):
+        no_display = "table-cell"
+    else:
+        no_display = "none"
+
+    sec_display_raw = (props.get("sec_display") or "table-row").strip().lower()
+    if sec_display_raw in ("none", "hide", "hidden", "0", "false"):
+        sec_display = "none"
+    else:
+        sec_display = "table-row"
+
     title_color = props.get("title_color") or "#0f172a"
     title_size = props.get("title_size") or "13.5px"
     title_weight = props.get("title_weight") or "700"
@@ -230,10 +247,15 @@ def generate_dynamic_section_css(props=None):
     else:
         subtotal_badge_display = "inline-block"
 
+    subtotal_border_bottom = props.get("subtotal_border_bottom") or f"2px solid {title_color}"
+    subtotal_amount_size = props.get("subtotal_amount_size") or "13.5px"
+    subtotal_amount_weight = props.get("subtotal_amount_weight") or "800"
+
     title_cell_width = "100%" if no_display == "none" else "95%"
 
     rules = [
         f""":root, html, body, .print-format, .child-table, tr.table-row, tr.table-row td {{
+    --sec-display: {sec_display} !important;
     --sec-bg: {bg} !important;
     --sec-border: {border} !important;
     --sec-border-width: {border_width} !important;
@@ -264,16 +286,20 @@ def generate_dynamic_section_css(props=None):
     --sec-subtotal-bg: {subtotal_bg} !important;
     --sec-subtotal-color: {subtotal_color} !important;
     --sec-subtotal-border: {subtotal_border} !important;
+    --sec-subtotal-border-bottom: {subtotal_border_bottom} !important;
     --sec-subtotal-size: {subtotal_size} !important;
     --sec-subtotal-weight: {subtotal_weight} !important;
     --sec-subtotal-badge-bg: {subtotal_badge_bg} !important;
     --sec-subtotal-badge-color: {subtotal_badge_color} !important;
     --sec-subtotal-badge-display: {subtotal_badge_display} !important;
+    --sec-subtotal-amount-size: {subtotal_amount_size} !important;
+    --sec-subtotal-amount-weight: {subtotal_amount_weight} !important;
 }}""",
 
         f"""tr.table-row:has([data-is-section="1"]),
 tr.table-row:has(.emc-print-section-header),
 tr.table-row.emc-print-section-row {{
+    display: {sec_display} !important;
     background-color: {bg} !important;
     font-weight: {title_weight} !important;
     -webkit-print-color-adjust: exact !important;
@@ -393,7 +419,7 @@ tr.table-row:has([data-is-section-subtotal="1"]) td,
 tr.table-row.emc-print-section-subtotal-row td {{
     background-color: {subtotal_bg} !important;
     border-top: 1.5px solid {subtotal_border} !important;
-    border-bottom: 2px solid {title_color} !important;
+    border-bottom: {subtotal_border_bottom} !important;
     padding-top: 7px !important;
     padding-bottom: 7px !important;
     font-weight: {subtotal_weight} !important;
@@ -439,8 +465,8 @@ tr.table-row.emc-print-section-subtotal-row td.column-value[data-fieldname="amou
 }}
 
 .emc-print-subtotal-amount {{
-    font-size: 13.5px !important;
-    font-weight: 800 !important;
+    font-size: {subtotal_amount_size} !important;
+    font-weight: {subtotal_amount_weight} !important;
     font-variant-numeric: tabular-nums !important;
     color: {subtotal_color} !important;
     text-align: right !important;
@@ -580,7 +606,9 @@ def before_print_sections(doc, method=None, print_settings=None):
         active_pf.css = (active_pf.css or "") + "\n\n/* EMC Dynamic Section CSS */\n" + dynamic_css_rules
 
     import copy
-    hide_idx = (props.get("no_display") == "none") if props else False
+    no_display_raw = (props.get("no_display") or "none").strip().lower() if props else "none"
+    hide_idx = (no_display_raw not in ("table-cell", "show", "yes", "true", "1", "inline", "block"))
+    item_no_mode = (props.get("item_no") or "continuous").strip().lower() if props else "continuous"
     meta = frappe.get_meta(doc.doctype)
     first_section = True
     for tf in meta.get_table_fields():
@@ -647,14 +675,18 @@ def before_print_sections(doc, method=None, print_settings=None):
 
         doc.set(tf.fieldname, new_child_rows)
 
+        continuous_item_idx = 0
+        section_item_idx = 0
         for row in new_child_rows:
             if getattr(row, "is_section", 0):
+                row.idx = None
+                section_item_idx = 0
                 title = (getattr(row, "section_title", None) or getattr(row, "item_name", "") or "Section").strip()
                 tot = section_totals.get(id(row), 0.0)
                 formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
 
                 # Override get_formatted on the section row to blank out non-title columns
-                def make_custom_get_formatted(orig_fn, hide_no=False):
+                def make_custom_get_formatted(orig_fn, hide_no=True):
                     def custom_get_formatted(self, fieldname, *args, **kwargs):
                         allowed = ("item_name", "section_title") if hide_no else ("item_name", "section_title", "idx")
                         if fieldname not in allowed:
@@ -691,6 +723,15 @@ def before_print_sections(doc, method=None, print_settings=None):
                     f'</div>'
                     f'</div>'
                 )
+            elif getattr(row, "is_section_subtotal", 0):
+                row.idx = None
+            else:
+                continuous_item_idx += 1
+                section_item_idx += 1
+                if item_no_mode in ("section", "per_section", "reset"):
+                    row.idx = section_item_idx
+                elif item_no_mode not in ("original", "db", "keep"):
+                    row.idx = continuous_item_idx
 
 def is_section_row(row):
     """Helper method for Jinja print templates."""
