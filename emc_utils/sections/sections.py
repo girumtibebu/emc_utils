@@ -142,71 +142,105 @@ def extract_section_styles_from_css(css_str):
                 break
     return props
 
-def generate_dynamic_section_css(props):
-    """Generate scoped CSS rules from extracted custom style properties."""
-    if not props:
-        return ""
-    rules = []
-    bg = props.get("bg")
-    border = props.get("border")
-    badge_bg = props.get("badge_bg")
-    badge_color = props.get("badge_color")
-    badge_display = props.get("badge_display")
-    no_display = props.get("no_display")
-    title_color = props.get("title_color")
-    title_size = props.get("title_size")
-    title_weight = props.get("title_weight")
+def generate_dynamic_section_css(props=None):
+    """Generate complete, robust CSS rules for section rows based on props with safe defaults."""
+    props = props or {}
 
-    if bg or border:
-        selectors = (
-            'tr.table-row:has([data-is-section="1"]), '
-            'tr.table-row:has(.emc-print-section-header), '
-            'tr.table-row.emc-print-section-row, '
-            'tr.table-row:has([data-is-section="1"]) td, '
-            'tr.table-row:has(.emc-print-section-header) td, '
-            'tr.table-row.emc-print-section-row td'
-        )
-        decls = []
-        if bg:
-            decls.append(f"background-color: {bg} !important;")
-        if border:
-            decls.append(f"border-top-color: {border} !important; border-bottom-color: {border} !important;")
-        rules.append(f"{selectors} {{ {' '.join(decls)} }}")
+    bg = props.get("bg") or "#f8fafc"
+    border = props.get("border") or "#cbd5e1"
+    border_width = props.get("border_width") or "1.5px"
+    badge_bg = props.get("badge_bg") or "#0f172a"
+    badge_color = props.get("badge_color") or "#ffffff"
+    badge_size = props.get("badge_size") or "8.5px"
+    badge_radius = props.get("badge_radius") or "4px"
+    badge_display = props.get("badge_display") or "inline-block"
+    no_display = props.get("no_display") or "table-cell"
+    title_color = props.get("title_color") or "#0f172a"
+    title_size = props.get("title_size") or "13.5px"
+    title_weight = props.get("title_weight") or "700"
+    title_transform = props.get("title_transform") or "none"
 
-    if no_display:
-        rules.append(
-            'tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"], '
-            'tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"], '
-            f'tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {{ display: {no_display} !important; }}'
-        )
-        if no_display == "none":
-            rules.append(
-                'tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"], '
-                'tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"], '
-                'tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] { width: 100% !important; max-width: none !important; }'
-            )
+    title_cell_width = "100%" if no_display == "none" else "95%"
 
-    b_decls = []
-    if badge_bg:
-        b_decls.append(f"background-color: {badge_bg} !important;")
-    if badge_color:
-        b_decls.append(f"color: {badge_color} !important;")
-    if badge_display:
-        b_decls.append(f"display: {badge_display} !important;")
-    if b_decls:
-        rules.append(f".emc-print-section-badge {{ {' '.join(b_decls)} }}")
+    rules = [
+        f"""tr.table-row:has([data-is-section="1"]),
+tr.table-row:has(.emc-print-section-header),
+tr.table-row.emc-print-section-row {{
+    background-color: {bg} !important;
+    font-weight: {title_weight} !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}}
 
-    t_decls = []
-    if title_color:
-        t_decls.append(f"color: {title_color} !important;")
-    if title_size:
-        t_decls.append(f"font-size: {title_size} !important;")
-    if title_weight:
-        t_decls.append(f"font-weight: {title_weight} !important;")
-    if t_decls:
-        rules.append(f".emc-print-section-title {{ {' '.join(t_decls)} }}")
+tr.table-row:has([data-is-section="1"]) td,
+tr.table-row:has(.emc-print-section-header) td,
+tr.table-row.emc-print-section-row td {{
+    background-color: {bg} !important;
+    border-top: {border_width} solid {border} !important;
+    border-bottom: {border_width} solid {border} !important;
+    font-weight: {title_weight} !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}}""",
 
-    return "\n".join(rules)
+        """tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
+tr.table-row:has(.emc-print-section-header) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
+tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]) {
+    display: none !important;
+}""",
+
+        f"""tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="idx"],
+tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="idx"],
+tr.table-row.emc-print-section-row td.column-value[data-fieldname="idx"] {{
+    display: {no_display} !important;
+}}
+
+tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
+tr.table-row:has(.emc-print-section-header) td.column-value[data-fieldname="item_name"],
+tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {{
+    width: {title_cell_width} !important;
+    max-width: none !important;
+}}""",
+
+        f""".emc-print-section-header {{
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 2px 0 !important;
+}}
+
+.emc-print-section-badge {{
+    background-color: {badge_bg} !important;
+    color: {badge_color} !important;
+    font-size: {badge_size} !important;
+    font-weight: 700 !important;
+    padding: 2px 7px !important;
+    border-radius: {badge_radius} !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    display: {badge_display} !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}}
+
+.emc-print-section-title {{
+    font-size: {title_size} !important;
+    font-weight: {title_weight} !important;
+    color: {title_color} !important;
+    text-transform: {title_transform} !important;
+    letter-spacing: 0.01em !important;
+    display: inline-block !important;
+}}
+
+tr.table-row:has([data-is-section="1"]) .cell-line--muted-sm,
+tr.table-row.emc-print-section-row .cell-line--muted-sm {{
+    display: none !important;
+}}"""
+    ]
+
+    return "\n\n".join(rules)
 
 def before_print_sections(doc, method=None, print_settings=None):
     """Format section rows for print generation: add badge, bold title, and clean up empty cells."""
@@ -317,13 +351,12 @@ def before_print_sections(doc, method=None, print_settings=None):
         except Exception:
             pass
 
-    dynamic_css_rules = ""
-    props = {}
-    if custom_style:
-        props = extract_section_styles_from_css(custom_style)
-        dynamic_css_rules = generate_dynamic_section_css(props)
+    props = extract_section_styles_from_css(custom_style) if custom_style else {}
+    dynamic_css_rules = generate_dynamic_section_css(props)
 
-    if dynamic_css_rules and active_pf and hasattr(active_pf, "css"):
+    if active_pf and hasattr(active_pf, "css"):
+        if "/* EMC Dynamic Section CSS */" in (active_pf.css or ""):
+            active_pf.css = active_pf.css.split("/* EMC Dynamic Section CSS */")[0]
         active_pf.css = (active_pf.css or "") + "\n\n/* EMC Dynamic Section CSS */\n" + dynamic_css_rules
 
     hide_idx = (props.get("no_display") == "none") if props else False
