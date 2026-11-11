@@ -149,148 +149,64 @@ To customize or review the layout visually:
    - Reorder or add child table columns.
    - Adjust page sizes (A4, Letter) and margins.
 
-### 3. Customizing Section Styling in the Designer
-You can customize the appearance of sections directly from the **Custom CSS** field of the **Child Table** in the Print Format Designer:
+### 3. Customizing Section Styling in Print Format Designer
+Configure section visual styling directly from the **Child Table > Style > Custom CSS** field in Print Format Designer. Both shorthand (`sec-`) and standard CSS custom property (`--sec-`) formats are supported:
 
-#### Child Table "Custom CSS" (Recommended & Direct)
-When you click on the child table (`Items`) in the Print Format Designer canvas, open the right-hand **Table Inspector** under **Style > Custom CSS**.
+#### Section Custom CSS Options Reference
 
-You can adjust section colors, borders, badges, and fonts. Both standard `--sec-` and shorthand `sec-` prefixes are accepted:
+| Option | Shorthand | CSS Variable | Values / Description |
+| :--- | :--- | :--- | :--- |
+| **Row Background** | `sec-bg:` | `--sec-bg:` | Color hex / rgb (e.g. `#eff6ff`) |
+| **Row Border** | `sec-border:` | `--sec-border:` | Top & bottom border color (e.g. `#bfdbfe`) |
+| **Border Width** | `sec-border-width:` | `--sec-border-width:` | Border thickness (e.g. `1.5px`) |
+| **Title Color** | `sec-title-color:` | `--sec-title-color:` | Text color of section title (e.g. `#1e40af`) |
+| **Title Size** | `sec-title-size:` | `--sec-title-size:` | Font size (e.g. `14px`, `1rem`) |
+| **Title Weight** | `sec-title-weight:` | `--sec-title-weight:` | Font weight (`normal`, `600`, `700`, `bold`) |
+| **Title Transform** | `sec-title-transform:` | `--sec-title-transform:` | Text casing (`uppercase`, `capitalize`, `none`) |
+| **Row Number Visibility** | `sec-no-display:` | `--sec-no-display:` | Set to `none` to hide row number on section rows |
+| **Badge Visibility** | `sec-badge-display:` | `--sec-badge-display:` | Set to `none` to hide the `[SECTION]` badge |
+| **Badge Background** | `sec-badge-bg:` | `--sec-badge-bg:` | Badge pill background color (e.g. `#2563eb`) |
+| **Badge Color** | `sec-badge-color:` | `--sec-badge-color:` | Badge text color (e.g. `#ffffff`) |
+| **Badge Size** | `sec-badge-size:` | `--sec-badge-size:` | Badge font size (e.g. `8.5px`) |
+| **Badge Radius** | `sec-badge-radius:` | `--sec-badge-radius:` | Pill border radius (e.g. `4px`) |
 
+#### Ready-to-Use Presets
+
+**1. Title-Only Row (No Badge, No Row Number, Full-Width Banner)**
 ```css
-/* Container padding */
-border: 1px solid #e5e7eb;
-padding: 6px;
-
-/* Section Row Background & Borders (accepts sec- or --sec-) */
+border: 1px solid #e5e7eb; padding: 6px;
 sec-bg: #eff6ff;
 sec-border: #bfdbfe;
-sec-border-width: 1.5px;
-
-/* Section Badge */
-sec-badge-bg: #2563eb;
-sec-badge-color: #ffffff;
-sec-badge-size: 8.5px;
-sec-badge-radius: 4px;
-/* To hide the badge completely: sec-badge-display: none; */
-
-/* Section Row Visibility Toggles */
-sec-badge-display: none;     /* Hides the [SECTION] badge (or: sec-badge: none;) */
-sec-no-display: none;        /* Hides the row number on section rows (or: sec-no: none;) */
-
-/* Section Title Typography */
+sec-badge-display: none;
+sec-no-display: none;
 sec-title-color: #1e40af;
-sec-title-size: 13.5px;
+sec-title-size: 14px;
 sec-title-weight: 700;
 ```
 
-##### Examples:
-- **Clean Title-Only Section (No Badge, No Row Number, Full-Width):**
-  ```css
-  sec-bg: #eff6ff;
-  sec-border: #bfdbfe;
-  sec-badge-display: none;
-  sec-no-display: none;
-  sec-title-color: #1e40af;
-  sec-title-size: 14px;
-  ```
-- **Soft Blue Theme with Badge & Number:**
-  ```css
-  sec-bg: #eff6ff;
-  sec-border: #bfdbfe;
-  sec-badge-bg: #2563eb;
-  sec-badge-color: #ffffff;
-  sec-title-color: #1e40af;
-  ```
-- **Minimalist Border-Only (White background, title only):**
-  ```css
-  sec-bg: #ffffff;
-  sec-border: #e2e8f0;
-  sec-badge-display: none;
-  sec-no-display: none;
-  sec-title-color: #0f172a;
-  ```
+**2. Modern Contrast (Pill Badge & Row Number)**
+```css
+sec-bg: #f8fafc;
+sec-border: #cbd5e1;
+sec-badge-bg: #0f172a;
+sec-badge-color: #ffffff;
+sec-title-color: #0f172a;
+sec-title-size: 13.5px;
+```
 
-#### Document Page Number Visibility
-To toggle the document page numbers (e.g. `Page 1 of 2`):
-- In **Print Format Designer**: Open the format, look at the canvas settings panel at the top/side, and toggle **Page numbers** to **Hide** (or choose position: `Bottom Right`, `Top Right`, etc.).
-- In **Print Settings / Print Format Form**: Set the **Page Number** dropdown to **Hide**.
-  sec-badge-display: none;
-  sec-title-color: #0f172a;
-  ```
-
-*Bonus:* If you prefer writing full CSS selector rules (e.g. `tr.emc-print-section-row td { ... }`), our enhancer script automatically detects selector blocks with braces `{ ... }` inside the table's custom CSS and compiles them into active print styles!
-
-#### Option B: Global "Custom CSS" (Document-Wide Print Settings)
-You can also adjust the default section styling document-wide under **Print Settings > Custom CSS** (`print_format.css`).
-   ```css
-   /* 1. Highlight Section Rows */
-   tr.table-row:has([data-is-section="1"]),
-   tr.table-row:has(.emc-print-section-header),
-   tr.table-row.emc-print-section-row {
-       background-color: #f8fafc !important;
-       font-weight: 700 !important;
-       -webkit-print-color-adjust: exact !important;
-       print-color-adjust: exact !important;
-   }
-
-   tr.table-row:has([data-is-section="1"]) td,
-   tr.table-row:has(.emc-print-section-header) td,
-   tr.table-row.emc-print-section-row td {
-       background-color: #f8fafc !important;
-       border-top: 1.5px solid #cbd5e1 !important;
-       border-bottom: 1.5px solid #cbd5e1 !important;
-       font-weight: 700 !important;
-   }
-
-   /* 2. Hide unneeded data columns (Qty, Rate, Amount, Code) */
-   tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]),
-   tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="idx"]) {
-       display: none !important;
-   }
-
-   /* 3. Section Title Spans Remaining Width */
-   tr.table-row:has([data-is-section="1"]) td.column-value[data-fieldname="item_name"],
-   tr.table-row.emc-print-section-row td.column-value[data-fieldname="item_name"] {
-       width: 95% !important;
-       max-width: none !important;
-   }
-
-   /* 4. Section Badge & Typography */
-   .emc-print-section-badge {
-       background-color: #0f172a !important;
-       color: #ffffff !important;
-       font-size: 8.5px !important;
-       font-weight: 700 !important;
-       padding: 2px 7px !important;
-       border-radius: 4px !important;
-       letter-spacing: 0.05em !important;
-       text-transform: uppercase !important;
-   }
-
-   .emc-print-section-title {
-       font-size: 13.5px !important;
-       font-weight: 700 !important;
-       color: #0f172a !important;
-   }
-   ```
+**3. Minimalist Line (White Background, Border-Only)**
+```css
+sec-bg: #ffffff;
+sec-border: #e2e8f0;
+sec-badge-display: none;
+sec-no-display: none;
+sec-title-color: #111827;
+sec-title-size: 13.5px;
+```
 
 #### Built-in Print Protection & Failsafe
-- **Zero Values Blanked:** The Python `before_print` hook monkey-patches `get_formatted` so quantities (`0`), rates (`Br 0.00`), amounts (`Br 0.00`), and units (`Unit`) are completely blanked on the server before Jinja renders the table.
-- **Server-Side CSS Failsafe:** Even if a user clears the CSS field in the designer, the Python hook injects the required section rules directly into the first section row, ensuring section titles never wrap into narrow columns or lose their badge.
-       font-weight: 700 !important;
-       color: #0f172a !important;
-   }
-
-   /* 3. Suppress Quantities, Rates, and Amounts on Section Rows */
-   tr.table-row:has([data-is-section="1"]) td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]),
-   tr.table-row.emc-print-section-row td.column-value:not([data-fieldname="item_name"]):not([data-fieldname="section_title"]):not([data-fieldname="idx"]) {
-       color: transparent !important;
-       font-size: 0 !important;
-       user-select: none !important;
-   }
-   ```
-4. Modify background colors (e.g., `#f1f5f9` or brand color), change badge borders, or font size, and click **Save**. The changes apply immediately in both the visual preview and PDF generation!
+- **Zero Financial Values Blanked:** The Python `before_print` hook suppresses quantities (`0`), rates (`Br 0.00`), amounts (`Br 0.00`), and units on section rows before Jinja renders the table.
+- **Server-Side CSS Injection:** When custom section styles are detected, styles are injected into the document `<head>` stylesheet, ensuring section rows expand cleanly without breaking merged column layouts (`Item + Description`).
 
 ### 4. Compatibility with Traditional Jinja Print Formats
 If you maintain classic or custom Jinja print templates, you can format section rows using `frappe.is_section_row(row)`:
