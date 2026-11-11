@@ -163,6 +163,26 @@ def generate_dynamic_section_css(props=None):
     title_cell_width = "100%" if no_display == "none" else "95%"
 
     rules = [
+        f""":root, html, body, .print-format, .child-table, tr.table-row, tr.table-row td {{
+    --sec-bg: {bg} !important;
+    --sec-border: {border} !important;
+    --sec-border-width: {border_width} !important;
+    --sec-border-top: {border_width} solid {border} !important;
+    --sec-border-bottom: {border_width} solid {border} !important;
+    --sec-badge-bg: {badge_bg} !important;
+    --sec-badge-color: {badge_color} !important;
+    --sec-badge-size: {badge_size} !important;
+    --sec-badge-radius: {badge_radius} !important;
+    --sec-badge-display: {badge_display} !important;
+    --sec-no-display: {no_display} !important;
+    --sec-idx-display: {no_display} !important;
+    --sec-title-color: {title_color} !important;
+    --sec-title-size: {title_size} !important;
+    --sec-title-weight: {title_weight} !important;
+    --sec-title-transform: {title_transform} !important;
+    --sec-title-cell-width: {title_cell_width} !important;
+}}""",
+
         f"""tr.table-row:has([data-is-section="1"]),
 tr.table-row:has(.emc-print-section-header),
 tr.table-row.emc-print-section-row {{
@@ -280,6 +300,11 @@ def before_print_sections(doc, method=None, print_settings=None):
                                     tcol["fieldtype"] = "HTML Editor"
                             if custom_style:
                                 break
+                        # Strip obsolete conflicting <style> tag from custom_html_enhancer
+                        if fld.get("fieldname") == "custom_html_enhancer":
+                            h = fld.get("html") or ""
+                            if "<style" in h:
+                                fld["html"] = re.sub(r"<style[\s\S]*?</style>\s*", "", h)
                     if custom_style:
                         break
                 if custom_style:
@@ -386,9 +411,10 @@ def before_print_sections(doc, method=None, print_settings=None):
                 if hasattr(row, "uom"):
                     row.uom = ""
 
-                # Only include fallback style tag if active_pf could not receive the CSS in head
+                # Injected dynamic style tag directly inside the first section row ensures
+                # that table-level and row-level CSS rules always override any layout wrappers
                 style_prefix = ""
-                if first_section and dynamic_css_rules and (not active_pf or not hasattr(active_pf, "css")):
+                if first_section and dynamic_css_rules:
                     style_prefix = f'<style id="emc-dynamic-section-css">\n{dynamic_css_rules}\n</style>'
                     first_section = False
 
