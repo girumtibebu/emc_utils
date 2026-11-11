@@ -1,4 +1,5 @@
 from emc_utils.constants import SCOPED_DOCTYPES
+from emc_utils import __version__
 
 app_name = "emc_utils"
 app_title = "EMC Utilities"
@@ -10,13 +11,13 @@ app_license = "mit"
 required_apps = ["erpnext"]
 
 app_include_js = [
-    "/assets/emc_utils/js/sections.js",
-    "/assets/emc_utils/js/company_switcher.js",
+    f"/assets/emc_utils/js/sections.js?v={__version__}",
+    f"/assets/emc_utils/js/company_switcher.js?v={__version__}",
 ]
 
 app_include_css = [
-    "/assets/emc_utils/css/sections.css",
-    "/assets/emc_utils/css/company_switcher.css",
+    f"/assets/emc_utils/css/sections.css?v={__version__}",
+    f"/assets/emc_utils/css/company_switcher.css?v={__version__}",
 ]
 
 doctype_js = {
