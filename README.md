@@ -9,7 +9,7 @@ A modular, upgrade-safe utility app for **Frappe Framework & ERPNext (v15 / v16)
 1. **Universal Child Table Sections:** Add clean, draggable visual section dividers and headings directly inside transactional child tables (Quotations, Sales Orders, Invoices, Purchase Orders) with Espresso UI badges, full-width inputs, and financial zeroing.
 2. **Company Switcher & Multi-Company Scoping:** Filter Desk lists and link searches across multiple companies using a sidebar toggle menu, with support for flat and nested company hierarchies.
 3. **Per-Company Default Print Formats:** Configure brand-specific print templates on each Company record without mutating site-wide defaults.
-4. **Frappe v16 Print Format Designer Integration:** Standard sample formats (`Quotation with Sections`) pre-configured for Frappe v16's visual Print Format Designer (`print_format_builder_beta: 1`), featuring full-row section highlights, suppression of zero amounts/rates/quantities, and an editable Custom CSS panel.
+4. **Frappe v16 Print Format Designer Integration:** 4 standard sample formats (`Quotation with Sections`, `Quotation with Section Subtotals`, `Quotation Modern with Sections`, `Quotation Modern with Subtotals`) pre-configured for Frappe v16's visual Print Format Designer (`print_format_builder_beta: 1`), featuring full-row section highlights, automatic pre-VAT subtotal calculation, suppression of zero amounts/rates/quantities, and an editable Custom CSS panel.
 
 ---
 
@@ -134,15 +134,17 @@ During app installation and migration (`bench migrate`), `emc_utils` installs a 
 
 ### 2. Sample Print Formats for Print Format Designer (v16.50+)
 
-`emc_utils` provides two sample print formats ready for the new **Frappe v16 Print Format Designer**:
-- **`Quotation with Sections`**: Clean modern layout with pre-styled section rows.
-- **`Quotation Modern with Sections`**: Direct non-standard clone of ERPNext's official **Quotation Modern** layout, equipped with section row styling.
+`emc_utils` provides 4 sample print formats ready for the new **Frappe v16 Print Format Designer**:
+- **`Quotation with Sections`**: Classical layout with inline total pill on the section bar (`sec-total-position: header`).
+- **`Quotation with Section Subtotals`**: Classical layout with dedicated subtotal summary rows at the end of each section aligned with the Amount column (`sec-total-position: bottom`).
+- **`Quotation Modern with Sections`**: Direct non-standard clone of ERPNext's official **Quotation Modern** layout with executive header total pills.
+- **`Quotation Modern with Subtotals`**: Minimalist Modern layout featuring dedicated section subtotal rows and clean accounting alignment.
 
-Both formats are non-standard (`standard: "No"`), allowing you to visually drag, drop, reorder fields, change column widths, and customize fonts and colors directly in Print Format Designer without developer mode or file overrides.
+All formats are non-standard (`standard: "No"`), allowing you to visually drag, drop, reorder fields, change column widths, and customize fonts and colors directly in Print Format Designer without developer mode or file overrides.
 
 To customize or review the layout visually:
 1. Navigate to **Print Format List** in Desk.
-2. Open either **Quotation with Sections** or **Quotation Modern with Sections**.
+2. Open any of the 4 formats above.
 3. Click the **Edit Format** button.
 4. You will see the full visual drag-and-drop designer canvas:
    - Drag and drop fields (Company logo, Customer address, Terms and Conditions).
