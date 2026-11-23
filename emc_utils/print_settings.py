@@ -2,21 +2,22 @@ import frappe
 from frappe.utils import flt
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+HR_SEPARATOR_HTML = '<hr style="margin: 14px 0 14px 0; border: 0; border-top: 1px solid var(--border-color);">'
+
 PRINT_CUSTOM_FIELDS = {
     "Quotation": [
         {
-            "fieldname": "print_settings_section",
-            "label": "Print Options",
-            "fieldtype": "Section Break",
-            "collapsible": 1,
-            "insert_after": "terms",
+            "fieldname": "print_options_sep_1",
+            "fieldtype": "HTML",
+            "options": HR_SEPARATOR_HTML,
+            "insert_after": "group_same_items",
         },
         {
             "fieldname": "print_show_section_subtotals",
             "label": "Show Section Subtotals",
             "fieldtype": "Check",
             "default": "1",
-            "insert_after": "print_settings_section",
+            "insert_after": "print_options_sep_1",
         },
         {
             "fieldname": "print_show_number_of_days",
@@ -35,16 +36,17 @@ PRINT_CUSTOM_FIELDS = {
             "insert_after": "print_show_number_of_days",
         },
         {
-            "fieldname": "print_options_col_break",
-            "fieldtype": "Column Break",
-            "insert_after": "print_show_number_of_pages",
+            "fieldname": "print_options_sep_2",
+            "fieldtype": "HTML",
+            "options": HR_SEPARATOR_HTML,
+            "insert_after": "language",
         },
         {
             "fieldname": "print_hide_qty",
             "label": "Hide Quantity Column",
             "fieldtype": "Check",
             "default": "0",
-            "insert_after": "print_options_col_break",
+            "insert_after": "print_options_sep_2",
         },
         {
             "fieldname": "print_without_vat",
@@ -56,18 +58,17 @@ PRINT_CUSTOM_FIELDS = {
     ],
     "Sales Order": [
         {
-            "fieldname": "print_settings_section",
-            "label": "Print Options",
-            "fieldtype": "Section Break",
-            "collapsible": 1,
-            "insert_after": "terms",
+            "fieldname": "print_options_sep_1",
+            "fieldtype": "HTML",
+            "options": HR_SEPARATOR_HTML,
+            "insert_after": "group_same_items",
         },
         {
             "fieldname": "print_show_section_subtotals",
             "label": "Show Section Subtotals",
             "fieldtype": "Check",
             "default": "1",
-            "insert_after": "print_settings_section",
+            "insert_after": "print_options_sep_1",
         },
         {
             "fieldname": "print_show_number_of_days",
@@ -86,16 +87,17 @@ PRINT_CUSTOM_FIELDS = {
             "insert_after": "print_show_number_of_days",
         },
         {
-            "fieldname": "print_options_col_break",
-            "fieldtype": "Column Break",
-            "insert_after": "print_show_number_of_pages",
+            "fieldname": "print_options_sep_2",
+            "fieldtype": "HTML",
+            "options": HR_SEPARATOR_HTML,
+            "insert_after": "language",
         },
         {
             "fieldname": "print_hide_qty",
             "label": "Hide Quantity Column",
             "fieldtype": "Check",
             "default": "0",
-            "insert_after": "print_options_col_break",
+            "insert_after": "print_options_sep_2",
         },
         {
             "fieldname": "print_without_vat",
@@ -108,6 +110,21 @@ PRINT_CUSTOM_FIELDS = {
 }
 
 def setup_print_custom_fields():
+    # 1. Clean up obsolete custom fields from earlier versions
+    obsolete_fields = [
+        "Quotation-print_settings_section",
+        "Sales Order-print_settings_section",
+        "Quotation-print_options_col_break",
+        "Sales Order-print_options_col_break",
+    ]
+    for field_name in obsolete_fields:
+        if frappe.db.exists("Custom Field", field_name):
+            try:
+                frappe.db.delete("Custom Field", {"name": field_name})
+            except Exception:
+                pass
+
+    # 2. Create / update fields inside standard Print Settings section
     create_custom_fields(PRINT_CUSTOM_FIELDS, update=True)
 
 def get_print_context(doc):
