@@ -667,9 +667,10 @@ def before_print_sections(doc, method=None, print_settings=None):
         # Build list of child rows with injected subtotal summary rows
         new_child_rows = []
         cur_sec = None
+        has_subtotals = total_pos in ("bottom", "both", "separate", "row", "end")
         for row in child_rows:
             if getattr(row, "is_section", 0):
-                if cur_sec is not None:
+                if cur_sec is not None and has_subtotals:
                     tot = section_totals.get(id(cur_sec), 0.0)
                     formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
                     sec_title = (getattr(cur_sec, "section_title", None) or getattr(cur_sec, "item_name", "") or "Section").strip()
@@ -678,6 +679,8 @@ def before_print_sections(doc, method=None, print_settings=None):
                     sub_row.is_section = 0
                     sub_row.is_section_subtotal = 1
                     sub_row.idx = None
+                    sub_row.amount = tot
+                    sub_row.section_title = sec_title
                     sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sec_title, formatted_total), sub_row)
                     new_child_rows.append(sub_row)
 
@@ -685,7 +688,7 @@ def before_print_sections(doc, method=None, print_settings=None):
 
             new_child_rows.append(row)
 
-        if cur_sec is not None:
+        if cur_sec is not None and has_subtotals:
             tot = section_totals.get(id(cur_sec), 0.0)
             formatted_total = frappe.format_value(tot, {"fieldtype": "Currency"}, doc=doc)
             sec_title = (getattr(cur_sec, "section_title", None) or getattr(cur_sec, "item_name", "") or "Section").strip()
@@ -694,6 +697,8 @@ def before_print_sections(doc, method=None, print_settings=None):
             sub_row.is_section = 0
             sub_row.is_section_subtotal = 1
             sub_row.idx = None
+            sub_row.amount = tot
+            sub_row.section_title = sec_title
             sub_row.get_formatted = MethodType(make_subtotal_get_formatted(sec_title, formatted_total), sub_row)
             new_child_rows.append(sub_row)
 
@@ -764,4 +769,12 @@ def before_print_sections(doc, method=None, print_settings=None):
 
 def is_section_row(row):
     """Helper method for Jinja print templates."""
-    return bool(getattr(row, "is_section", 0))
+    return bool(
+        getattr(row, "is_section", 0)
+        or getattr(row, "item_name", "") == "Separator"
+        or getattr(row, "item_code", "") == "Separator"
+    )
+
+def is_subtotal_row(row):
+    """Helper method for Jinja print templates."""
+    return bool(getattr(row, "is_section_subtotal", 0))

@@ -45,5 +45,6 @@ doc_events = {
 jinja = {
     "methods": [
         "emc_utils.sections.is_section_row",
+        "emc_utils.sections.is_subtotal_row",
     ]
 }

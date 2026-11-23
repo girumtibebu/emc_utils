@@ -6,4 +6,5 @@ from emc_utils.sections.sections import (
     before_validate_sections,
     before_print_sections,
     is_section_row,
+    is_subtotal_row,
 )
