@@ -46,5 +46,7 @@ jinja = {
     "methods": [
         "emc_utils.sections.is_section_row",
         "emc_utils.sections.is_subtotal_row",
+        "emc_utils.print_settings.get_print_context",
+        "emc_utils.doctype.emc_settings.emc_settings.get_emc_settings",
     ]
 }

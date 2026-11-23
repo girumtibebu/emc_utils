@@ -8,3 +8,4 @@ from emc_utils.sections.sections import (
     is_section_row,
     is_subtotal_row,
 )
+from emc_utils.print_settings import get_print_context

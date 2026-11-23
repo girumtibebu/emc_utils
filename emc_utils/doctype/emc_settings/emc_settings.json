@@ -1,0 +1,271 @@
+{
+ "actions": [],
+ "creation": "2026-11-23 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "print_tab",
+  "subtotals_section",
+  "show_section_subtotals",
+  "subtotal_position",
+  "show_subtotal_title",
+  "renumber_items_per_section",
+  "subtotal_col_break",
+  "show_section_chip",
+  "section_header_bg",
+  "columns_section",
+  "auto_detect_columns",
+  "default_show_days",
+  "default_show_pages",
+  "columns_col_break",
+  "default_hide_qty",
+  "default_without_vat",
+  "branding_section",
+  "show_draft_badge",
+  "branding_col_break",
+  "signature_field_name",
+  "sections_tab",
+  "sections_config_sec",
+  "enable_child_table_sections",
+  "collapse_empty_sections",
+  "sec_col_break",
+  "section_row_bg_color",
+  "company_switcher_tab",
+  "company_switcher_sec",
+  "enable_company_switcher",
+  "strict_company_filter",
+  "general_tab",
+  "general_sec",
+  "app_version",
+  "debug_logging"
+ ],
+ "fields": [
+  {
+   "fieldname": "print_tab",
+   "fieldtype": "Tab Break",
+   "label": "Print Settings"
+  },
+  {
+   "fieldname": "subtotals_section",
+   "fieldtype": "Section Break",
+   "label": "Section Subtotals & Renumbering"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_section_subtotals",
+   "fieldtype": "Check",
+   "label": "Enable Section Subtotals"
+  },
+  {
+   "default": "bottom",
+   "fieldname": "subtotal_position",
+   "fieldtype": "Select",
+   "label": "Subtotal Position",
+   "options": "bottom\ntop\nboth\nnone"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_subtotal_title",
+   "fieldtype": "Check",
+   "label": "Show Section Title in Subtotal"
+  },
+  {
+   "default": "0",
+   "fieldname": "renumber_items_per_section",
+   "fieldtype": "Check",
+   "label": "Renumber Items Per Section (1, 2... within each section)"
+  },
+  {
+   "fieldname": "subtotal_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_section_chip",
+   "fieldtype": "Check",
+   "label": "Show Section Chip / Badge"
+  },
+  {
+   "default": "#f8f9fa",
+   "fieldname": "section_header_bg",
+   "fieldtype": "Data",
+   "label": "Section Header Background Color"
+  },
+  {
+   "fieldname": "columns_section",
+   "fieldtype": "Section Break",
+   "label": "Column Visibility & Auto-Detection"
+  },
+  {
+   "default": "1",
+   "description": "Automatically show No. of Days and Pages columns when line items contain values",
+   "fieldname": "auto_detect_columns",
+   "fieldtype": "Check",
+   "label": "Auto-detect Dynamic Columns"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_show_days",
+   "fieldtype": "Check",
+   "label": "Always Show No. of Days Column"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_show_pages",
+   "fieldtype": "Check",
+   "label": "Always Show Pages Column"
+  },
+  {
+   "fieldname": "columns_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_hide_qty",
+   "fieldtype": "Check",
+   "label": "Hide Quantity Column by Default"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_without_vat",
+   "fieldtype": "Check",
+   "label": "Print Without VAT by Default"
+  },
+  {
+   "fieldname": "branding_section",
+   "fieldtype": "Section Break",
+   "label": "Branding & Signatures"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_draft_badge",
+   "fieldtype": "Check",
+   "label": "Show DRAFT Badge for Unsubmitted Documents"
+  },
+  {
+   "fieldname": "branding_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "print_signature",
+   "fieldname": "signature_field_name",
+   "fieldtype": "Data",
+   "label": "Signature Attachment Field Name"
+  },
+  {
+   "fieldname": "sections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Child Table Sections"
+  },
+  {
+   "fieldname": "sections_config_sec",
+   "fieldtype": "Section Break",
+   "label": "Desk Grid & Section Options"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_child_table_sections",
+   "fieldtype": "Check",
+   "label": "Enable Sections in Child Tables"
+  },
+  {
+   "default": "0",
+   "fieldname": "collapse_empty_sections",
+   "fieldtype": "Check",
+   "label": "Collapse Empty Sections by Default"
+  },
+  {
+   "fieldname": "sec_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "#f0f4f8",
+   "fieldname": "section_row_bg_color",
+   "fieldtype": "Data",
+   "label": "Desk Section Row Background"
+  },
+  {
+   "fieldname": "company_switcher_tab",
+   "fieldtype": "Tab Break",
+   "label": "Company Switcher"
+  },
+  {
+   "fieldname": "company_switcher_sec",
+   "fieldtype": "Section Break",
+   "label": "Company Switcher Configuration"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_company_switcher",
+   "fieldtype": "Check",
+   "label": "Enable Company Switcher"
+  },
+  {
+   "default": "1",
+   "fieldname": "strict_company_filter",
+   "fieldtype": "Check",
+   "label": "Enforce Strict Company Filtering"
+  },
+  {
+   "fieldname": "general_tab",
+   "fieldtype": "Tab Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "general_sec",
+   "fieldtype": "Section Break",
+   "label": "Diagnostics & Version"
+  },
+  {
+   "default": "1.0.1",
+   "fieldname": "app_version",
+   "fieldtype": "Data",
+   "label": "App Version",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "debug_logging",
+   "fieldtype": "Check",
+   "label": "Enable Debug Logging"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-23 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "EMC Utils",
+ "name": "EMC Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

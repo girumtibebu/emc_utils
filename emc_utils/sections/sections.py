@@ -667,7 +667,19 @@ def before_print_sections(doc, method=None, print_settings=None):
         # Build list of child rows with injected subtotal summary rows
         new_child_rows = []
         cur_sec = None
-        has_subtotals = total_pos in ("bottom", "both", "separate", "row", "end")
+        pctx = getattr(doc, "_print_context", None)
+        if pctx is None:
+            try:
+                from emc_utils.print_settings import get_print_context
+                pctx = get_print_context(doc)
+                doc._print_context = pctx
+            except Exception:
+                pctx = {"show_subtotals": True}
+
+        if not pctx.get("show_subtotals", True):
+            has_subtotals = False
+        else:
+            has_subtotals = total_pos in ("bottom", "both", "separate", "row", "end") or (not props)
         for row in child_rows:
             if getattr(row, "is_section", 0):
                 if cur_sec is not None and has_subtotals:
