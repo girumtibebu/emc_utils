@@ -1,3 +1,4 @@
+import json
 import frappe
 from frappe.utils import flt
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
@@ -109,6 +110,33 @@ PRINT_CUSTOM_FIELDS = {
     ],
 }
 
+def update_doctype_field_order(doctype, fields_to_insert_after):
+    """If a field_order property setter exists (from Customize Form), synchronize field positions."""
+    ps_name = frappe.db.get_value("Property Setter", {"doc_type": doctype, "property": "field_order"}, "name")
+    if not ps_name:
+        return
+    try:
+        ps = frappe.get_doc("Property Setter", ps_name)
+        order = json.loads(ps.value)
+
+        all_our_fields = set()
+        for flist in fields_to_insert_after.values():
+            all_our_fields.update(flist)
+        order = [f for f in order if f not in all_our_fields]
+
+        for target_field, new_fields in fields_to_insert_after.items():
+            if target_field in order:
+                idx = order.index(target_field) + 1
+                for f in reversed(new_fields):
+                    order.insert(idx, f)
+            else:
+                order.extend(new_fields)
+
+        ps.value = json.dumps(order)
+        ps.save(ignore_permissions=True)
+    except Exception:
+        pass
+
 def setup_print_custom_fields():
     # 1. Clean up obsolete custom fields from earlier versions
     obsolete_fields = [
@@ -126,6 +154,24 @@ def setup_print_custom_fields():
 
     # 2. Create / update fields inside standard Print Settings section
     create_custom_fields(PRINT_CUSTOM_FIELDS, update=True)
+
+    # 3. Synchronize with field_order Property Setter if present (created via Customize Form)
+    spec = {
+        "group_same_items": [
+            "print_options_sep_1",
+            "print_show_section_subtotals",
+            "print_show_number_of_days",
+            "print_show_number_of_pages",
+        ],
+        "language": [
+            "print_options_sep_2",
+            "print_hide_qty",
+            "print_without_vat",
+        ],
+    }
+    for dt in ["Quotation", "Sales Order"]:
+        update_doctype_field_order(dt, spec)
+        frappe.clear_cache(doctype=dt)
 
 def get_print_context(doc):
     """Computes dynamic print visibility flags, column counts and colspans for a document."""
