@@ -132,6 +132,16 @@ def update_doctype_field_order(doctype, fields_to_insert_after):
             else:
                 order.extend(new_fields)
 
+        # Ensure any missing standard fields (e.g. utm_analytics_section on Sales Order) do not jump in before custom fields
+        meta = frappe.get_meta(doctype)
+        std_fields = [f.fieldname for f in meta.fields if not getattr(f, "is_custom_field", False)]
+        missing = [f for f in std_fields if f not in order]
+        if "utm_analytics_section" in missing and "print_without_vat" in order:
+            idx = order.index("print_without_vat") + 1
+            utm_group = [f for f in ["utm_analytics_section", "utm_source", "utm_medium", "column_break_ijxt", "utm_campaign", "utm_content"] if f in missing]
+            for f in reversed(utm_group):
+                order.insert(idx, f)
+
         ps.value = json.dumps(order)
         ps.save(ignore_permissions=True)
     except Exception:
