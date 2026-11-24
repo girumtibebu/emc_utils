@@ -1,74 +1,241 @@
-// Company switcher, as a row in the sidebar header menu (the menu at the top of the sidebar).
-//
-// The row is titled "Companies" and opens a submenu: "All" at the top picks every company, and the
-// companies follow in alphabetical order, each with a toggle. Ticking a group toggles every company
-// under it. The choice is saved on the server and the page reloads so lists pick it up.
+// Company switcher for Desk: Multi-company scoping with proper checkboxes and Apply button.
 //
 // Users with access to a single company don't get the row.
 (function () {
 	const METHOD = "emc_utils.company_scope.";
 	let state = null;
 
-	const leaves = () => state.companies.filter((c) => !c.is_group);
+	const leaves = () => (state?.companies || []).filter((c) => !c.is_group);
 	const leaves_under = (name) => {
-		const children = state.companies.filter((c) => c.parent === name);
+		const children = (state?.companies || []).filter((c) => c.parent === name);
 		return children.flatMap((c) => (c.is_group ? leaves_under(c.name) : [c.name]));
 	};
 
-	function save(companies) {
-		frappe.call(METHOD + "set_scope", { companies }).then(() => window.location.reload());
-	}
-
-	// Ticking a company or group flips its companies; at least one company always stays in use.
-	function toggle(company) {
-		const under = company.is_group ? leaves_under(company.name) : [company.name];
-		const picked = new Set(state.scope || []);
-		const all_on = under.every((n) => picked.has(n));
-		under.forEach((n) => (all_on ? picked.delete(n) : picked.add(n)));
-		if (!picked.size) {
-			frappe.show_alert({ message: __("Pick at least one company"), indicator: "orange" });
+	function save_scope(companies, d) {
+		if (!companies || !companies.length) {
+			frappe.msgprint({
+				title: __("Selection Required"),
+				message: __("Please select at least one company."),
+				indicator: "orange",
+			});
 			return;
 		}
-		save([...picked]);
-	}
 
-	// A check mark in the label marks the companies in use; the menu's own highlight is too faint
-	// to read as a tick when everything is picked.
-	const CHECKED = "\u2713\u00A0";
-	const UNCHECKED = "\u2003";
-	const mark = (on) => (on ? CHECKED : UNCHECKED);
-
-	function company_rows() {
-		const scope = new Set(state.scope || []);
-		const all = leaves().map((c) => c.name);
-		const everything = all.length > 0 && all.every((n) => scope.has(n));
-		const rows = [
-			{
-				name: "company-all",
-				label: mark(everything) + __("All"),
-				icon: "building-2",
-				selected: everything,
-				onclick: () => save(all),
-			},
-		];
-		const sorted = [...state.companies].sort((a, b) => a.name.localeCompare(b.name));
-		for (const company of sorted) {
-			const selected = company.is_group
-				? leaves_under(company.name).every((n) => scope.has(n))
-				: scope.has(company.name);
-			rows.push({
-				name: `company-${company.name}`,
-				label: mark(selected) + company.name,
-				icon: company.is_group ? "folder" : "building",
-				selected,
-				onclick: () => toggle(company),
-			});
+		if (d) {
+			d.get_primary_btn().prop("disabled", true).text(__("Applying..."));
 		}
-		return rows;
+
+		frappe.call({
+			method: METHOD + "set_scope",
+			args: { companies },
+			freeze: true,
+			freeze_message: __("Switching company scope..."),
+			callback: function (r) {
+				if (d) d.hide();
+				window.location.reload();
+			},
+			error: function () {
+				if (d) {
+					d.get_primary_btn().prop("disabled", false).text(__("Apply"));
+				}
+			},
+		});
 	}
 
-	// The sidebar header's menu is built fresh on every open, so the row is added there
-	// rather than drawn beside the header.
+	function show_company_dialog() {
+		if (!state || !state.companies || !state.companies.length) return;
+
+		const all_leaf_names = leaves().map((c) => c.name);
+		const current_scope = new Set(state.scope || []);
+		// working copy of selected leaf companies
+		let temp_scope = new Set(current_scope);
+
+		const d = new frappe.ui.Dialog({
+			title: __("Select Companies"),
+			size: "small",
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "switcher_html",
+				},
+			],
+			primary_action_label: __("Apply"),
+			primary_action: function () {
+				save_scope([...temp_scope], d);
+			},
+			secondary_action_label: __("Cancel"),
+			secondary_action: function () {
+				d.hide();
+			},
+		});
+
+		const $body = d.fields_dict.switcher_html.$wrapper;
+
+		// Build UI
+		const groups = state.companies.filter((c) => c.is_group);
+		const sorted_companies = [...state.companies].sort((a, b) => {
+			if (a.is_group !== b.is_group) return a.is_group ? -1 : 1;
+			return a.name.localeCompare(b.name);
+		});
+
+		let html = `
+			<div class="emc-switcher-modal">
+				<p class="text-muted small mb-3">
+					${__("Select the companies you want to view across Desk. Click Apply to update.")}
+				</p>
+				<div class="emc-switcher-header d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
+					<label class="emc-cb-label font-weight-bold d-flex align-items-center mb-0" style="cursor:pointer;">
+						<input type="checkbox" id="emc-cb-all" class="emc-checkbox mr-2">
+						<span>${__("Select All")}</span>
+					</label>
+					<span id="emc-selected-count" class="badge badge-secondary" style="font-size:12px; font-weight:normal; padding: 4px 8px;"></span>
+				</div>
+				<div class="emc-company-list" style="max-height: 320px; overflow-y: auto; padding-right: 2px;">
+		`;
+
+		// Group-first or Tree view
+		// Let's render hierarchical if parents exist, otherwise flat list
+		for (const comp of sorted_companies) {
+			const is_group = comp.is_group;
+			const indent = comp.depth && comp.depth > 0 ? "margin-left: 20px;" : "";
+			const icon = is_group ? "folder" : "building";
+			const tag = is_group
+				? `<span class="badge badge-light text-muted ml-auto" style="font-size:11px;">Group</span>`
+				: `<span class="badge badge-light text-muted ml-auto" style="font-size:11px;">${comp.abbr || ""}</span>`;
+
+			html += `
+				<div class="emc-company-item d-flex align-items-center py-2 px-2 rounded mb-1 ${is_group ? "emc-is-group" : "emc-is-leaf"}" 
+					 data-company="${comp.name}" data-is-group="${is_group ? "1" : "0"}" style="${indent} cursor:pointer; user-select:none;">
+					<input type="checkbox" class="emc-checkbox mr-2 ${is_group ? "emc-group-cb" : "emc-leaf-cb"}" 
+						   id="emc-cb-${frappe.utils.escape_html(comp.name)}" 
+						   data-name="${frappe.utils.escape_html(comp.name)}" 
+						   style="cursor:pointer; width:16px; height:16px; margin: 0 8px 0 0;">
+					<span class="emc-icon mr-2 text-muted" style="margin-right:6px;">
+						${is_group ? "📁" : "🏢"}
+					</span>
+					<span class="emc-name ${is_group ? "font-weight-bold" : ""}">
+						${frappe.utils.escape_html(comp.name)}
+					</span>
+					${tag}
+				</div>
+			`;
+		}
+
+		html += `
+				</div>
+			</div>
+		`;
+
+		$body.html(html);
+
+		// Helper to refresh checkbox states and counts
+		function refresh_ui() {
+			let leaf_checked_count = 0;
+			all_leaf_names.forEach((name) => {
+				const is_on = temp_scope.has(name);
+				if (is_on) leaf_checked_count++;
+				const $cb = $body.find(`.emc-leaf-cb[data-name="${CSS.escape(name)}"]`);
+				$cb.prop("checked", is_on);
+				$cb.closest(".emc-company-item").toggleClass("emc-item-active", is_on);
+			});
+
+			// Update Group checkboxes
+			groups.forEach((g) => {
+				const under = leaves_under(g.name);
+				const under_count = under.filter((n) => temp_scope.has(n)).length;
+				const $gcb = $body.find(`.emc-group-cb[data-name="${CSS.escape(g.name)}"]`);
+				if (under_count === 0) {
+					$gcb.prop("checked", false);
+					$gcb.prop("indeterminate", false);
+					$gcb.closest(".emc-company-item").removeClass("emc-item-active");
+				} else if (under_count === under.length) {
+					$gcb.prop("checked", true);
+					$gcb.prop("indeterminate", false);
+					$gcb.closest(".emc-company-item").addClass("emc-item-active");
+				} else {
+					$gcb.prop("checked", false);
+					$gcb.prop("indeterminate", true);
+					$gcb.closest(".emc-company-item").removeClass("emc-item-active");
+				}
+			});
+
+			// Update Select All checkbox
+			const $all_cb = $body.find("#emc-cb-all");
+			if (leaf_checked_count === 0) {
+				$all_cb.prop("checked", false);
+				$all_cb.prop("indeterminate", false);
+			} else if (leaf_checked_count === all_leaf_names.length) {
+				$all_cb.prop("checked", true);
+				$all_cb.prop("indeterminate", false);
+			} else {
+				$all_cb.prop("checked", false);
+				$all_cb.prop("indeterminate", true);
+			}
+
+			// Update counter
+			$body.find("#emc-selected-count").text(
+				leaf_checked_count === all_leaf_names.length
+					? __("All ({0}) Selected", [leaf_checked_count])
+					: __("{0} of {1} Selected", [leaf_checked_count, all_leaf_names.length])
+			);
+		}
+
+		// Leaf checkbox / row click
+		$body.on("click", ".emc-is-leaf", function (e) {
+			const $target = $(e.target);
+			const $cb = $(this).find(".emc-leaf-cb");
+			const name = $cb.attr("data-name");
+
+			let new_state;
+			if ($target.is(".emc-leaf-cb")) {
+				new_state = $target.is(":checked");
+			} else {
+				new_state = !$cb.is(":checked");
+				$cb.prop("checked", new_state);
+			}
+
+			if (new_state) {
+				temp_scope.add(name);
+			} else {
+				temp_scope.delete(name);
+			}
+			refresh_ui();
+		});
+
+		// Group checkbox / row click
+		$body.on("click", ".emc-is-group", function (e) {
+			const $target = $(e.target);
+			const $cb = $(this).find(".emc-group-cb");
+			const group_name = $cb.attr("data-name");
+			const under = leaves_under(group_name);
+
+			const all_on = under.every((n) => temp_scope.has(n));
+			const set_to = !all_on;
+
+			under.forEach((n) => {
+				if (set_to) temp_scope.add(n);
+				else temp_scope.delete(n);
+			});
+
+			refresh_ui();
+		});
+
+		// Select All click
+		$body.on("change", "#emc-cb-all", function () {
+			const is_checked = $(this).is(":checked");
+			if (is_checked) {
+				all_leaf_names.forEach((n) => temp_scope.add(n));
+			} else {
+				temp_scope.clear();
+			}
+			refresh_ui();
+		});
+
+		refresh_ui();
+		d.show();
+	}
+
+	// Install into Sidebar Header menu
 	function install() {
 		const Header = window.frappe?.ui?.SidebarHeader;
 		if (!Header || Header.prototype.__company_switcher) return;
@@ -76,22 +243,30 @@
 		Header.prototype.menu_items = function () {
 			const groups = original.call(this);
 			if (!state || leaves().length < 2) return groups;
+
+			const active_count = (state.scope || []).length;
+			const all_count = leaves().length;
+			let summary = __("All");
+			if (active_count === 1) {
+				summary = state.scope[0];
+			} else if (active_count < all_count) {
+				summary = `${active_count} ${__("Selected")}`;
+			}
+
 			const row = {
 				name: "company-switcher",
-				label: __("Companies"),
+				label: `${__("Companies")} (${summary})`,
 				icon: "building",
-				submenu: company_rows(),
+				onclick: () => show_company_dialog(),
 			};
-			// Sits under the Modules / Apps section and above Edit Sidebar.
+
 			const at = Math.min(1, groups.length);
 			return [...groups.slice(0, at), { group: "", options: [row] }, ...groups.slice(at)];
 		};
 		Header.prototype.__company_switcher = true;
 	}
 
-	// Each company prints with its own format (Company > Print Formats), not the site-wide default.
-	// The form's meta is shared by every open document of that type, so the site default is
-	// remembered and put back for companies without their own format.
+	// Form print format per company
 	const site_default_print_format = {};
 	function apply_company_print_format(frm) {
 		if (!frm?.meta || !frm.doc) return;
@@ -104,6 +279,10 @@
 	}
 
 	$(document).on("form-refresh", (_e, frm) => apply_company_print_format(frm));
+
+	// Expose globally for convenience
+	window.frappe = window.frappe || {};
+	window.frappe.show_company_switcher = show_company_dialog;
 
 	$(document).on("app_ready startup", () => {
 		if (frappe.session.user === "Guest") return;

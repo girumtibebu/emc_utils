@@ -1,4 +1,37 @@
-/* Company Switcher Styles */
-.company-switcher-active {
-    font-weight: 600;
+/* Company Switcher Dialog & Menu Styles */
+
+.emc-switcher-modal {
+    padding: 4px;
+}
+
+.emc-company-item {
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.emc-company-item:hover {
+    background-color: var(--subtle-fg, #f4f5f7);
+}
+
+.emc-company-item.emc-item-active {
+    background-color: var(--highlight-color, rgba(var(--primary-rgb, 43, 114, 186), 0.08));
+    border-color: rgba(var(--primary-rgb, 43, 114, 186), 0.2);
+}
+
+.emc-company-item.emc-is-group {
+    background-color: var(--subtle-fg, #fafbfc);
+    font-weight: 500;
+}
+
+.emc-company-item.emc-is-group:hover {
+    background-color: var(--subtle-fg, #f0f1f3);
+}
+
+.emc-checkbox {
+    accent-color: var(--primary-color, #2b72ba);
+    cursor: pointer;
+}
+
+.emc-switcher-header {
+    user-select: none;
 }
