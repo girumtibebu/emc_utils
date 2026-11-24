@@ -93,12 +93,9 @@
 				<div class="emc-company-list" style="max-height: 320px; overflow-y: auto; padding-right: 2px;">
 		`;
 
-		// Group-first or Tree view
-		// Let's render hierarchical if parents exist, otherwise flat list
 		for (const comp of sorted_companies) {
 			const is_group = comp.is_group;
 			const indent = comp.depth && comp.depth > 0 ? "margin-left: 20px;" : "";
-			const icon = is_group ? "folder" : "building";
 			const tag = is_group
 				? `<span class="badge badge-light text-muted ml-auto" style="font-size:11px;">Group</span>`
 				: `<span class="badge badge-light text-muted ml-auto" style="font-size:11px;">${comp.abbr || ""}</span>`;
@@ -244,13 +241,22 @@
 			const groups = original.call(this);
 			if (!state || leaves().length < 2) return groups;
 
-			const active_count = (state.scope || []).length;
+			const name_to_abbr = {};
+			(state.companies || []).forEach((c) => {
+				name_to_abbr[c.name] = c.abbr || c.name;
+			});
+
+			const active_companies = state.scope || [];
 			const all_count = leaves().length;
 			let summary = __("All");
-			if (active_count === 1) {
-				summary = state.scope[0];
-			} else if (active_count < all_count) {
-				summary = `${active_count} ${__("Selected")}`;
+			if (active_companies.length === all_count) {
+				summary = __("All");
+			} else if (active_companies.length === 1) {
+				summary = name_to_abbr[active_companies[0]] || active_companies[0];
+			} else if (active_companies.length > 1) {
+				const abbrs = active_companies.map((n) => name_to_abbr[n] || n);
+				const joined = abbrs.join(", ");
+				summary = joined.length <= 14 ? joined : `${active_companies.length}`;
 			}
 
 			const row = {
