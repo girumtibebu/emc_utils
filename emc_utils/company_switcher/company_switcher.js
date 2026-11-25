@@ -1,9 +1,39 @@
-// Company switcher for Desk: Multi-company scoping with proper checkboxes and Apply button.
+// Company switcher for Desk: Frappe UI 1.0 native multi-company scoping dialog.
 //
 // Users with access to a single company don't get the row.
 (function () {
 	const METHOD = "emc_utils.company_scope.";
 	let state = null;
+
+	// SVG Icons matching Frappe UI 1.0 (Lucide icon set)
+	const SVG_ICONS = {
+		building: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
+			<path d="M9 22v-4h6v4"/>
+			<path d="M8 6h.01"/>
+			<path d="M16 6h.01"/>
+			<path d="M12 6h.01"/>
+			<path d="M12 10h.01"/>
+			<path d="M12 14h.01"/>
+			<path d="M16 10h.01"/>
+			<path d="M16 14h.01"/>
+			<path d="M8 10h.01"/>
+			<path d="M8 14h.01"/>
+		</svg>`,
+		folder: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+		</svg>`,
+		search: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<circle cx="11" cy="11" r="8"/>
+			<path d="m21 21-4.3-4.3"/>
+		</svg>`,
+		check: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+			<polyline points="20 6 9 17 4 12"/>
+		</svg>`,
+		minus: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+			<line x1="5" y1="12" x2="19" y2="12"/>
+		</svg>`,
+	};
 
 	const leaves = () => (state?.companies || []).filter((c) => !c.is_group);
 	const leaves_under = (name) => {
@@ -30,7 +60,7 @@
 			args: { companies },
 			freeze: true,
 			freeze_message: __("Switching company scope..."),
-			callback: function (r) {
+			callback: function () {
 				if (d) d.hide();
 				window.location.reload();
 			},
@@ -42,12 +72,23 @@
 		});
 	}
 
+	function checkbox_html(id, extra_class, data_attrs) {
+		return `
+			<label class="emc-custom-checkbox" for="${id}">
+				<input type="checkbox" id="${id}" class="emc-real-cb ${extra_class}" ${data_attrs}>
+				<span class="emc-checkbox-box">
+					<span class="emc-check-icon">${SVG_ICONS.check}</span>
+					<span class="emc-minus-icon">${SVG_ICONS.minus}</span>
+				</span>
+			</label>
+		`;
+	}
+
 	function show_company_dialog() {
 		if (!state || !state.companies || !state.companies.length) return;
 
 		const all_leaf_names = leaves().map((c) => c.name);
 		const current_scope = new Set(state.scope || []);
-		// working copy of selected leaf companies
 		let temp_scope = new Set(current_scope);
 
 		const d = new frappe.ui.Dialog({
@@ -71,7 +112,6 @@
 
 		const $body = d.fields_dict.switcher_html.$wrapper;
 
-		// Build UI
 		const groups = state.companies.filter((c) => c.is_group);
 		const sorted_companies = [...state.companies].sort((a, b) => {
 			if (a.is_group !== b.is_group) return a.is_group ? -1 : 1;
@@ -79,53 +119,70 @@
 		});
 
 		let html = `
-			<div class="emc-switcher-modal">
-				<p class="text-muted small mb-3">
-					${__("Select the companies you want to view across Desk. Click Apply to update.")}
+			<div class="emc-frappe-ui-modal">
+				<p class="emc-modal-desc text-muted">
+					${__("Select active companies for Desk transactions and views.")}
 				</p>
-				<div class="emc-switcher-header d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
-					<label class="emc-cb-label font-weight-bold d-flex align-items-center mb-0" style="cursor:pointer;">
-						<input type="checkbox" id="emc-cb-all" class="emc-checkbox mr-2">
-						<span>${__("Select All")}</span>
-					</label>
-					<span id="emc-selected-count" class="badge badge-secondary" style="font-size:12px; font-weight:normal; padding: 4px 8px;"></span>
+
+				${
+					sorted_companies.length > 3
+						? `
+				<div class="emc-search-wrapper">
+					<span class="emc-search-icon">${SVG_ICONS.search}</span>
+					<input type="text" class="form-control emc-search-input" placeholder="${__("Search companies...")}">
 				</div>
-				<div class="emc-company-list" style="max-height: 320px; overflow-y: auto; padding-right: 2px;">
+				`
+						: ""
+				}
+
+				<div class="emc-toolbar d-flex justify-content-between align-items-center mb-2 px-1">
+					<label class="emc-select-all-wrap d-flex align-items-center mb-0" style="cursor:pointer;">
+						${checkbox_html("emc-cb-all", "", "")}
+						<span class="emc-select-all-label font-weight-500 ml-2" style="margin-left: 8px;">
+							${__("Select All")}
+						</span>
+					</label>
+					<span id="emc-selected-count" class="emc-counter-pill"></span>
+				</div>
+
+				<div class="emc-company-list">
 		`;
 
 		for (const comp of sorted_companies) {
 			const is_group = comp.is_group;
-			const indent = comp.depth && comp.depth > 0 ? "margin-left: 20px;" : "";
-			const tag = is_group
-				? `<span class="badge badge-light text-muted ml-auto" style="font-size:11px;">Group</span>`
-				: `<span class="badge badge-light text-muted ml-auto" style="font-size:11px;">${comp.abbr || ""}</span>`;
+			const is_child = comp.depth && comp.depth > 0;
+			const escaped_name = frappe.utils.escape_html(comp.name);
+			const cb_id = `emc-cb-${escaped_name}`;
 
 			html += `
-				<div class="emc-company-item d-flex align-items-center py-2 px-2 rounded mb-1 ${is_group ? "emc-is-group" : "emc-is-leaf"}" 
-					 data-company="${comp.name}" data-is-group="${is_group ? "1" : "0"}" style="${indent} cursor:pointer; user-select:none;">
-					<input type="checkbox" class="emc-checkbox mr-2 ${is_group ? "emc-group-cb" : "emc-leaf-cb"}" 
-						   id="emc-cb-${frappe.utils.escape_html(comp.name)}" 
-						   data-name="${frappe.utils.escape_html(comp.name)}" 
-						   style="cursor:pointer; width:16px; height:16px; margin: 0 8px 0 0;">
-					<span class="emc-icon mr-2 text-muted" style="margin-right:6px;">
-						${is_group ? "📁" : "🏢"}
+				<div class="emc-company-row ${is_group ? "emc-group-row" : "emc-leaf-row"} ${is_child ? "is-tree-child" : ""}" 
+					 data-company="${escaped_name}">
+					${checkbox_html(cb_id, is_group ? "emc-group-cb" : "emc-leaf-cb", `data-name="${escaped_name}"`)}
+					<div class="emc-icon-badge" style="margin-left: 8px; margin-right: 10px;">
+						${is_group ? SVG_ICONS.folder : SVG_ICONS.building}
+					</div>
+					<span class="emc-company-name ${is_group ? "font-weight-600" : ""}">
+						${escaped_name}
 					</span>
-					<span class="emc-name ${is_group ? "font-weight-bold" : ""}">
-						${frappe.utils.escape_html(comp.name)}
-					</span>
-					${tag}
+					${
+						is_group
+							? `<span class="emc-tag-group ml-auto" style="margin-left: auto;">Group</span>`
+							: `<span class="emc-tag-abbr ml-auto" style="margin-left: auto;">${comp.abbr || ""}</span>`
+					}
 				</div>
 			`;
 		}
 
 		html += `
+					<div class="emc-empty-search text-muted text-center py-4" style="display:none; font-size:13px;">
+						${__("No companies found.")}
+					</div>
 				</div>
 			</div>
 		`;
 
 		$body.html(html);
 
-		// Helper to refresh checkbox states and counts
 		function refresh_ui() {
 			let leaf_checked_count = 0;
 			all_leaf_names.forEach((name) => {
@@ -133,30 +190,30 @@
 				if (is_on) leaf_checked_count++;
 				const $cb = $body.find(`.emc-leaf-cb[data-name="${CSS.escape(name)}"]`);
 				$cb.prop("checked", is_on);
-				$cb.closest(".emc-company-item").toggleClass("emc-item-active", is_on);
+				$cb.closest(".emc-company-row").toggleClass("is-checked", is_on);
 			});
 
-			// Update Group checkboxes
 			groups.forEach((g) => {
 				const under = leaves_under(g.name);
 				const under_count = under.filter((n) => temp_scope.has(n)).length;
 				const $gcb = $body.find(`.emc-group-cb[data-name="${CSS.escape(g.name)}"]`);
+				const $grow = $gcb.closest(".emc-company-row");
+
 				if (under_count === 0) {
 					$gcb.prop("checked", false);
 					$gcb.prop("indeterminate", false);
-					$gcb.closest(".emc-company-item").removeClass("emc-item-active");
+					$grow.removeClass("is-checked");
 				} else if (under_count === under.length) {
 					$gcb.prop("checked", true);
 					$gcb.prop("indeterminate", false);
-					$gcb.closest(".emc-company-item").addClass("emc-item-active");
+					$grow.addClass("is-checked");
 				} else {
 					$gcb.prop("checked", false);
 					$gcb.prop("indeterminate", true);
-					$gcb.closest(".emc-company-item").removeClass("emc-item-active");
+					$grow.removeClass("is-checked");
 				}
 			});
 
-			// Update Select All checkbox
 			const $all_cb = $body.find("#emc-cb-all");
 			if (leaf_checked_count === 0) {
 				$all_cb.prop("checked", false);
@@ -169,43 +226,36 @@
 				$all_cb.prop("indeterminate", true);
 			}
 
-			// Update counter
 			$body.find("#emc-selected-count").text(
 				leaf_checked_count === all_leaf_names.length
-					? __("All ({0}) Selected", [leaf_checked_count])
+					? __("All ({0})", [leaf_checked_count])
 					: __("{0} of {1} Selected", [leaf_checked_count, all_leaf_names.length])
 			);
 		}
 
-		// Leaf checkbox / row click
-		$body.on("click", ".emc-is-leaf", function (e) {
-			const $target = $(e.target);
+		$body.on("click", ".emc-leaf-row", function (e) {
+			if ($(e.target).is("input")) return;
 			const $cb = $(this).find(".emc-leaf-cb");
 			const name = $cb.attr("data-name");
-
-			let new_state;
-			if ($target.is(".emc-leaf-cb")) {
-				new_state = $target.is(":checked");
-			} else {
-				new_state = !$cb.is(":checked");
-				$cb.prop("checked", new_state);
-			}
-
-			if (new_state) {
-				temp_scope.add(name);
-			} else {
-				temp_scope.delete(name);
-			}
+			const new_state = !$cb.is(":checked");
+			$cb.prop("checked", new_state);
+			if (new_state) temp_scope.add(name);
+			else temp_scope.delete(name);
 			refresh_ui();
 		});
 
-		// Group checkbox / row click
-		$body.on("click", ".emc-is-group", function (e) {
-			const $target = $(e.target);
+		$body.on("change", ".emc-leaf-cb", function () {
+			const name = $(this).attr("data-name");
+			if ($(this).is(":checked")) temp_scope.add(name);
+			else temp_scope.delete(name);
+			refresh_ui();
+		});
+
+		$body.on("click", ".emc-group-row", function (e) {
+			if ($(e.target).is("input")) return;
 			const $cb = $(this).find(".emc-group-cb");
 			const group_name = $cb.attr("data-name");
 			const under = leaves_under(group_name);
-
 			const all_on = under.every((n) => temp_scope.has(n));
 			const set_to = !all_on;
 
@@ -213,11 +263,21 @@
 				if (set_to) temp_scope.add(n);
 				else temp_scope.delete(n);
 			});
-
 			refresh_ui();
 		});
 
-		// Select All click
+		$body.on("change", ".emc-group-cb", function () {
+			const group_name = $(this).attr("data-name");
+			const under = leaves_under(group_name);
+			const set_to = $(this).is(":checked");
+
+			under.forEach((n) => {
+				if (set_to) temp_scope.add(n);
+				else temp_scope.delete(n);
+			});
+			refresh_ui();
+		});
+
 		$body.on("change", "#emc-cb-all", function () {
 			const is_checked = $(this).is(":checked");
 			if (is_checked) {
@@ -226,6 +286,18 @@
 				temp_scope.clear();
 			}
 			refresh_ui();
+		});
+
+		$body.on("input", ".emc-search-input", function () {
+			const query = $(this).val().toLowerCase().trim();
+			let matched = 0;
+			$body.find(".emc-company-row").each(function () {
+				const name = ($(this).attr("data-company") || "").toLowerCase();
+				const is_match = !query || name.includes(query);
+				$(this).toggle(is_match);
+				if (is_match) matched++;
+			});
+			$body.find(".emc-empty-search").toggle(matched === 0);
 		});
 
 		refresh_ui();
