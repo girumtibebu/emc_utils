@@ -2,11 +2,10 @@ import os
 import json
 import frappe
 
-from emc_utils.print_designer.blocks import add_print_blocks, setup_print_toggles
+from emc_utils.print_designer.blocks import add_print_blocks
 
 def setup_sample_print_formats():
     """Install or update sample print formats with section support for Print Format Designer."""
-    setup_print_toggles()
     current_dir = os.path.dirname(os.path.abspath(__file__))
     module_name = "EMC Utils" if frappe.db.exists("Module Def", "EMC Utils") else "Selling"
 

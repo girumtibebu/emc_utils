@@ -7,14 +7,7 @@ and keeps the rest of the layout (and the user's edits) as it is.
 
 import copy
 
-from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-# Taxes use the existing "Print Without VAT" check (emc_utils/print_settings.py).
-TOGGLES = [
-	("print_payment_terms", "Print Payment Terms"),
-	("print_terms", "Print Terms and Conditions"),
-]
-
+# The check boxes are created in emc_utils/print_settings.py.
 TAXES_VISIBLE = "not doc.print_without_vat"
 PAYMENT_VISIBLE = "doc.print_payment_terms and doc.payment_schedule"
 TERMS_VISIBLE = "doc.print_terms and doc.terms"
@@ -78,14 +71,6 @@ TERMS_SECTION = {
 	"margin": {"top": 15, "right": 12, "bottom": 0, "left": 12},
 	"columns": [{"label": "", "fields": [{"label": "Terms and Conditions", "fieldname": "terms", "fieldtype": "Text Editor"}]}],
 }
-
-
-def setup_print_toggles():
-	fields, after = [], "print_without_vat"
-	for fieldname, label in TOGGLES:
-		fields.append({"fieldname": fieldname, "label": label, "fieldtype": "Check", "default": "1", "insert_after": after})
-		after = fieldname
-	create_custom_fields({"Quotation": fields}, update=True)
 
 
 def add_print_blocks(layout):

@@ -5,138 +5,74 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 HR_SEPARATOR_HTML = '<hr style="margin: 14px 0 14px 0; border: 0; border-top: 1px solid var(--border-color);">'
 
-PRINT_CUSTOM_FIELDS = {
-    "Quotation": [
-        {
-            "fieldname": "print_options_sep_1",
-            "fieldtype": "HTML",
-            "options": HR_SEPARATOR_HTML,
-            "insert_after": "group_same_items",
-        },
-        {
-            "fieldname": "print_show_section_subtotals",
-            "label": "Show Section Subtotals",
-            "fieldtype": "Check",
-            "default": "1",
-            "insert_after": "print_options_sep_1",
-        },
-        {
-            "fieldname": "print_show_number_of_days",
-            "label": "Show No. of Days Column",
-            "description": "Auto-detected from items if left unchecked",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_show_section_subtotals",
-        },
-        {
-            "fieldname": "print_show_number_of_pages",
-            "label": "Show Pages Column",
-            "description": "Auto-detected from items if left unchecked",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_show_number_of_days",
-        },
-        {
-            "fieldname": "print_options_sep_2",
-            "fieldtype": "HTML",
-            "options": HR_SEPARATOR_HTML,
-            "insert_after": "language",
-        },
-        {
-            "fieldname": "print_hide_qty",
-            "label": "Hide Quantity Column",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_options_sep_2",
-        },
-        {
-            "fieldname": "print_without_vat",
-            "label": "Print Without VAT",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_hide_qty",
-        },
-        {
-            "fieldname": "print_payment_terms",
-            "label": "Print Payment Terms",
-            "fieldtype": "Check",
-            "default": "1",
-            "insert_after": "print_without_vat",
-        },
-        {
-            "fieldname": "print_terms",
-            "label": "Print Terms and Conditions",
-            "fieldtype": "Check",
-            "default": "1",
-            "insert_after": "print_payment_terms",
-        },
-    ],
-    "Sales Order": [
-        {
-            "fieldname": "print_options_sep_1",
-            "fieldtype": "HTML",
-            "options": HR_SEPARATOR_HTML,
-            "insert_after": "group_same_items",
-        },
-        {
-            "fieldname": "print_show_section_subtotals",
-            "label": "Show Section Subtotals",
-            "fieldtype": "Check",
-            "default": "1",
-            "insert_after": "print_options_sep_1",
-        },
-        {
-            "fieldname": "print_show_number_of_days",
-            "label": "Show No. of Days Column",
-            "description": "Auto-detected from items if left unchecked",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_show_section_subtotals",
-        },
-        {
-            "fieldname": "print_show_number_of_pages",
-            "label": "Show Pages Column",
-            "description": "Auto-detected from items if left unchecked",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_show_number_of_days",
-        },
-        {
-            "fieldname": "print_options_sep_2",
-            "fieldtype": "HTML",
-            "options": HR_SEPARATOR_HTML,
-            "insert_after": "language",
-        },
-        {
-            "fieldname": "print_hide_qty",
-            "label": "Hide Quantity Column",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_options_sep_2",
-        },
-        {
-            "fieldname": "print_without_vat",
-            "label": "Print Without VAT",
-            "fieldtype": "Check",
-            "default": "0",
-            "insert_after": "print_hide_qty",
-        },
-        {
-            "fieldname": "print_payment_terms",
-            "label": "Print Payment Terms",
-            "fieldtype": "Check",
-            "default": "1",
-            "insert_after": "print_without_vat",
-        },
-        {
-            "fieldname": "print_terms",
-            "label": "Print Terms and Conditions",
-            "fieldtype": "Check",
-            "default": "1",
-            "insert_after": "print_payment_terms",
-        },
-    ],
-}
+# Left column: what the items table shows. Right column: which blocks print.
+_PRINT_FIELDS = [
+    {
+        "fieldname": "print_options_sep_1",
+        "fieldtype": "HTML",
+        "options": HR_SEPARATOR_HTML,
+        "insert_after": "group_same_items",
+    },
+    {
+        "fieldname": "print_show_section_subtotals",
+        "label": "Show Section Subtotals",
+        "fieldtype": "Check",
+        "default": "1",
+        "insert_after": "print_options_sep_1",
+    },
+    {
+        "fieldname": "print_show_number_of_days",
+        "label": "Show No. of Days Column",
+        "description": "Auto-detected from items if left unchecked",
+        "fieldtype": "Check",
+        "default": "0",
+        "insert_after": "print_show_section_subtotals",
+    },
+    {
+        "fieldname": "print_show_number_of_pages",
+        "label": "Show Pages Column",
+        "description": "Auto-detected from items if left unchecked",
+        "fieldtype": "Check",
+        "default": "0",
+        "insert_after": "print_show_number_of_days",
+    },
+    {
+        "fieldname": "print_hide_qty",
+        "label": "Hide Quantity Column",
+        "fieldtype": "Check",
+        "default": "0",
+        "insert_after": "print_show_number_of_pages",
+    },
+    {
+        "fieldname": "print_options_sep_2",
+        "fieldtype": "HTML",
+        "options": HR_SEPARATOR_HTML,
+        "insert_after": "language",
+    },
+    {
+        "fieldname": "print_without_vat",
+        "label": "Print Without VAT",
+        "fieldtype": "Check",
+        "default": "0",
+        "insert_after": "print_options_sep_2",
+    },
+    {
+        "fieldname": "print_payment_terms",
+        "label": "Print Payment Terms",
+        "fieldtype": "Check",
+        "default": "1",
+        "insert_after": "print_without_vat",
+    },
+    {
+        "fieldname": "print_terms",
+        "label": "Print Terms and Conditions",
+        "fieldtype": "Check",
+        "default": "1",
+        "insert_after": "print_payment_terms",
+    },
+]
+
+PRINT_CUSTOM_FIELDS = {dt: [dict(f) for f in _PRINT_FIELDS] for dt in ("Quotation", "Sales Order")}
 
 def update_doctype_field_order(doctype, fields_to_insert_after):
     """If a field_order property setter exists (from Customize Form), synchronize field positions."""
@@ -164,8 +100,8 @@ def update_doctype_field_order(doctype, fields_to_insert_after):
         meta = frappe.get_meta(doctype)
         std_fields = [f.fieldname for f in meta.fields if not getattr(f, "is_custom_field", False)]
         missing = [f for f in std_fields if f not in order]
-        if "utm_analytics_section" in missing and "print_without_vat" in order:
-            idx = order.index("print_without_vat") + 1
+        if "utm_analytics_section" in missing and "print_terms" in order:
+            idx = order.index("print_terms") + 1
             utm_group = [f for f in ["utm_analytics_section", "utm_source", "utm_medium", "column_break_ijxt", "utm_campaign", "utm_content"] if f in missing]
             for f in reversed(utm_group):
                 order.insert(idx, f)
@@ -200,10 +136,10 @@ def setup_print_custom_fields():
             "print_show_section_subtotals",
             "print_show_number_of_days",
             "print_show_number_of_pages",
+            "print_hide_qty",
         ],
         "language": [
             "print_options_sep_2",
-            "print_hide_qty",
             "print_without_vat",
             "print_payment_terms",
             "print_terms",
@@ -271,17 +207,10 @@ def get_print_context(doc):
     else:
         without_vat = False
 
-    # 7. Print Payment Terms (default on so existing docs keep showing them)
-    if doc.get("print_payment_terms") is not None:
-        print_payment_terms = bool(doc.get("print_payment_terms"))
-    else:
-        print_payment_terms = True
-
-    # 8. Print Terms and Conditions (default on)
-    if doc.get("print_terms") is not None:
-        print_terms = bool(doc.get("print_terms"))
-    else:
-        print_terms = True
+    # 7. Payment terms and terms print unless turned off; doctypes without the
+    # check boxes (e.g. Sales Invoice) print them.
+    show_payment_terms = doc.get("print_payment_terms") is None or bool(doc.get("print_payment_terms"))
+    show_terms = doc.get("print_terms") is None or bool(doc.get("print_terms"))
 
     # Calculate total columns
     # Base columns: No (1), Item (1), Description (1), Rate (1), Amount (1) = 5
@@ -299,8 +228,11 @@ def get_print_context(doc):
         "show_pages": show_pages,
         "hide_qty": hide_qty,
         "without_vat": without_vat,
-        "print_payment_terms": print_payment_terms,
-        "print_terms": print_terms,
+        "show_payment_terms": show_payment_terms,
+        "show_terms": show_terms,
+        # Same flags under the names commit 50fad6b used.
+        "print_payment_terms": show_payment_terms,
+        "print_terms": show_terms,
         "total_columns": cols,
         "title_colspan": cols - 1,
         "subtotal_label_colspan": cols - 2,
