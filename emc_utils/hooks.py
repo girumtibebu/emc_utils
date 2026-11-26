@@ -40,8 +40,11 @@ doc_events = {
         "before_validate": "emc_utils.sections.before_validate_sections",
         "before_print": "emc_utils.sections.before_print_sections",
     },
+    "CRM Lead": {
+        "before_insert": "emc_utils.crm.set_company",
+    },
     "CRM Deal": {
-        "before_insert": "emc_utils.crm.set_default_company",
+        "before_insert": "emc_utils.crm.set_company",
     },
 }
 
