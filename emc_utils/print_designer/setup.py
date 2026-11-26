@@ -1,12 +1,12 @@
 import os
-import frappe
-
-import os
 import json
 import frappe
 
+from emc_utils.print_designer.blocks import add_print_blocks, setup_print_toggles
+
 def setup_sample_print_formats():
     """Install or update sample print formats with section support for Print Format Designer."""
+    setup_print_toggles()
     current_dir = os.path.dirname(os.path.abspath(__file__))
     module_name = "EMC Utils" if frappe.db.exists("Module Def", "EMC Utils") else "Selling"
 
@@ -116,7 +116,7 @@ def setup_sample_print_formats():
         pf.html = None
         pf.raw_commands = None
         pf.print_format_builder_beta = 1
-        pf.format_data = format_data_to_save
+        pf.format_data = json.dumps(add_print_blocks(json.loads(format_data_to_save)))
         pf.css = fmt.get("css", "")
 
         for attr in ("margin_top", "margin_bottom", "margin_left", "margin_right", "page_number"):
