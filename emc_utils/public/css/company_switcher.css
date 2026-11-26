@@ -244,3 +244,66 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Dark mode: Frappe's dark modal sets --border-color to the control background,
+   its checkbox is light with a dark tick, and the group colours above are light-only. */
+[data-theme="dark"] .emc-frappe-ui-modal {
+    --emc-line: var(--gray-700, #383838);
+}
+
+[data-theme="dark"] .emc-search-input,
+[data-theme="dark"] .emc-company-list,
+[data-theme="dark"] .emc-counter-pill,
+[data-theme="dark"] .emc-tag-abbr {
+    border-color: var(--emc-line) !important;
+}
+
+[data-theme="dark"] .emc-search-input {
+    background-color: var(--control-bg, #232323) !important;
+}
+
+[data-theme="dark"] .emc-search-input:focus {
+    border-color: var(--gray-500, #7c7c7c) !important;
+}
+
+[data-theme="dark"] .emc-company-list {
+    background-color: transparent;
+}
+
+[data-theme="dark"] .emc-company-row:hover,
+[data-theme="dark"] .emc-company-row.is-checked {
+    background-color: var(--fg-hover-color, #2a2a2a);
+}
+
+[data-theme="dark"] .emc-company-row.is-tree-child::before {
+    background-color: var(--emc-line);
+}
+
+[data-theme="dark"] .emc-icon-badge,
+[data-theme="dark"] .emc-counter-pill,
+[data-theme="dark"] .emc-tag-abbr {
+    background-color: var(--gray-800, #2a2a2a);
+}
+
+[data-theme="dark"] .emc-group-row .emc-icon-badge {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+}
+
+[data-theme="dark"] .emc-tag-group {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+[data-theme="dark"] .emc-checkbox-box {
+    border-color: var(--gray-600, #525252);
+    background-color: transparent;
+}
+
+[data-theme="dark"] .emc-real-cb:checked + .emc-checkbox-box,
+[data-theme="dark"] .emc-real-cb:indeterminate + .emc-checkbox-box {
+    background-color: var(--surface-gray-10, #f5f5f5);
+    border-color: var(--surface-gray-10, #f5f5f5);
+    color: #111827;
+}
