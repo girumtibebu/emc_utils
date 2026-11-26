@@ -56,6 +56,20 @@ PRINT_CUSTOM_FIELDS = {
             "default": "0",
             "insert_after": "print_hide_qty",
         },
+        {
+            "fieldname": "print_payment_terms",
+            "label": "Print Payment Terms",
+            "fieldtype": "Check",
+            "default": "1",
+            "insert_after": "print_without_vat",
+        },
+        {
+            "fieldname": "print_terms",
+            "label": "Print Terms and Conditions",
+            "fieldtype": "Check",
+            "default": "1",
+            "insert_after": "print_payment_terms",
+        },
     ],
     "Sales Order": [
         {
@@ -106,6 +120,20 @@ PRINT_CUSTOM_FIELDS = {
             "fieldtype": "Check",
             "default": "0",
             "insert_after": "print_hide_qty",
+        },
+        {
+            "fieldname": "print_payment_terms",
+            "label": "Print Payment Terms",
+            "fieldtype": "Check",
+            "default": "1",
+            "insert_after": "print_without_vat",
+        },
+        {
+            "fieldname": "print_terms",
+            "label": "Print Terms and Conditions",
+            "fieldtype": "Check",
+            "default": "1",
+            "insert_after": "print_payment_terms",
         },
     ],
 }
@@ -177,6 +205,8 @@ def setup_print_custom_fields():
             "print_options_sep_2",
             "print_hide_qty",
             "print_without_vat",
+            "print_payment_terms",
+            "print_terms",
         ],
     }
     for dt in ["Quotation", "Sales Order"]:
@@ -241,6 +271,18 @@ def get_print_context(doc):
     else:
         without_vat = False
 
+    # 7. Print Payment Terms (default on so existing docs keep showing them)
+    if doc.get("print_payment_terms") is not None:
+        print_payment_terms = bool(doc.get("print_payment_terms"))
+    else:
+        print_payment_terms = True
+
+    # 8. Print Terms and Conditions (default on)
+    if doc.get("print_terms") is not None:
+        print_terms = bool(doc.get("print_terms"))
+    else:
+        print_terms = True
+
     # Calculate total columns
     # Base columns: No (1), Item (1), Description (1), Rate (1), Amount (1) = 5
     cols = 5
@@ -257,6 +299,8 @@ def get_print_context(doc):
         "show_pages": show_pages,
         "hide_qty": hide_qty,
         "without_vat": without_vat,
+        "print_payment_terms": print_payment_terms,
+        "print_terms": print_terms,
         "total_columns": cols,
         "title_colspan": cols - 1,
         "subtotal_label_colspan": cols - 2,
