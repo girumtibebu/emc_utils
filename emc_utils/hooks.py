@@ -39,7 +39,15 @@ doc_events = {
     "*": {
         "before_validate": "emc_utils.sections.before_validate_sections",
         "before_print": "emc_utils.sections.before_print_sections",
-    }
+    },
+    "CRM Deal": {
+        "before_insert": "emc_utils.crm.set_default_company",
+    },
+}
+
+# Frappe CRM: quotation company comes from the deal (see emc_utils/crm.py)
+override_whitelisted_methods = {
+    "crm.fcrm.doctype.erpnext_crm_settings.erpnext_crm_settings.get_quotation_url": "emc_utils.crm.get_quotation_url",
 }
 
 jinja = {
