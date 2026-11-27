@@ -70,6 +70,22 @@ _PRINT_FIELDS = [
         "default": "1",
         "insert_after": "print_payment_terms",
     },
+    {
+        "fieldname": "print_signature",
+        "label": "Print Signature",
+        "fieldtype": "Link",
+        "options": "Signature",
+        "reqd": 1,
+        "default": "Dinberu Getachew",
+        "insert_after": "letter_head",
+    },
+    {
+        "fieldname": "print_show_signature",
+        "label": "Show Signature on Print",
+        "fieldtype": "Check",
+        "default": "1",
+        "insert_after": "print_terms",
+    },
 ]
 
 PRINT_CUSTOM_FIELDS = {dt: [dict(f) for f in _PRINT_FIELDS] for dt in ("Quotation", "Sales Order")}
@@ -143,6 +159,7 @@ def setup_print_custom_fields():
             "print_without_vat",
             "print_payment_terms",
             "print_terms",
+            "print_show_signature",
         ],
     }
     for dt in ["Quotation", "Sales Order"]:
@@ -211,6 +228,7 @@ def get_print_context(doc):
     # check boxes (e.g. Sales Invoice) print them.
     show_payment_terms = doc.get("print_payment_terms") is None or bool(doc.get("print_payment_terms"))
     show_terms = doc.get("print_terms") is None or bool(doc.get("print_terms"))
+    show_signature = doc.get("print_show_signature") is None or bool(doc.get("print_show_signature"))
 
     # Calculate total columns
     # Base columns: No (1), Item (1), Description (1), Rate (1), Amount (1) = 5
@@ -230,6 +248,7 @@ def get_print_context(doc):
         "without_vat": without_vat,
         "show_payment_terms": show_payment_terms,
         "show_terms": show_terms,
+        "show_signature": show_signature,
         # Same flags under the names commit 50fad6b used.
         "print_payment_terms": show_payment_terms,
         "print_terms": show_terms,

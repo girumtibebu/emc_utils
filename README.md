@@ -333,6 +333,28 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ---
 
+## Changelog
+
+### 1.1.0
+
+**Print (Quotation and Sales Order)**
+- New check boxes: **Print Payment Terms**, **Print Terms and Conditions**, and **Show Signature on Print** (all default on). The payment schedule, terms and signature blocks honour them in every EMC template and in the Decor template.
+- New **Print Signature** link (required, default set in `print_settings.py`) to the **Signature** doctype.
+- **Signature** is now a doctype in `EMC Utils` (it was a custom doctype on live). Its signature images are site data and are not in the repo.
+- VAT, Agency Fee and Grand Total logic and the bolder Grand Total in the Master templates (from commits 50fad6b and 49f4708).
+- Print Settings layout: table options on the left, printed blocks on the right; "Hide Quantity Column" moved into the table group.
+
+**Print formats**
+- Restored the **Decor** bold quotation theme, now in `print_format/quotation_bold_decor/`.
+- Added **Alter Space Quotation Template** (`quotation_alter_space/`) and **Alter Sales Order** (`sales_order_alter/`).
+- Section CSS for the four Modern/Sections formats updated to the live version.
+
+**Maintenance**
+- Removed duplicate copies of `print_settings.py` and the print format and doctype folders outside the module folder.
+- Removed the two unused test files (`test_crm.py`, `test_print_blocks.py`); git history keeps them.
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](license.txt).
