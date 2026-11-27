@@ -198,6 +198,11 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ## Changelog
 
+### 1.2.1
+
+- ALT masters now use the Alter layout: the Alter Space design for Quotation and the Alter Sales Order design (staging) for Sales Order, with the same toggles, sections and signature logic as EMC.
+- Desk Print Settings split into labelled groups: "Table columns" and "Printed blocks". The signature link sits next to its toggle.
+
 ### 1.2.0
 
 - Print formats reduced to the four master templates: EMC and ALT, Quotation and Sales Order.

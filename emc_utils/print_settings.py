@@ -4,6 +4,7 @@ from frappe.utils import flt
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 HR_SEPARATOR_HTML = '<hr style="margin: 14px 0 14px 0; border: 0; border-top: 1px solid var(--border-color);">'
+HEADING_HTML = '<div style="font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin: 4px 0 8px 0;">{}</div>'
 
 # Left column: what the items table shows. Right column: which blocks print.
 _PRINT_FIELDS = [
@@ -14,11 +15,17 @@ _PRINT_FIELDS = [
         "insert_after": "group_same_items",
     },
     {
+        "fieldname": "print_heading_table",
+        "fieldtype": "HTML",
+        "options": HEADING_HTML.format("Table columns"),
+        "insert_after": "print_options_sep_1",
+    },
+    {
         "fieldname": "print_show_section_subtotals",
         "label": "Show Section Subtotals",
         "fieldtype": "Check",
         "default": "1",
-        "insert_after": "print_options_sep_1",
+        "insert_after": "print_heading_table",
     },
     {
         "fieldname": "print_show_number_of_days",
@@ -50,11 +57,17 @@ _PRINT_FIELDS = [
         "insert_after": "language",
     },
     {
+        "fieldname": "print_heading_blocks",
+        "fieldtype": "HTML",
+        "options": HEADING_HTML.format("Printed blocks"),
+        "insert_after": "print_options_sep_2",
+    },
+    {
         "fieldname": "print_without_vat",
         "label": "Print Without VAT",
         "fieldtype": "Check",
         "default": "0",
-        "insert_after": "print_options_sep_2",
+        "insert_after": "print_heading_blocks",
     },
     {
         "fieldname": "print_payment_terms",
@@ -71,20 +84,20 @@ _PRINT_FIELDS = [
         "insert_after": "print_payment_terms",
     },
     {
+        "fieldname": "print_show_signature",
+        "label": "Show Signature on Print",
+        "fieldtype": "Check",
+        "default": "1",
+        "insert_after": "print_terms",
+    },
+    {
         "fieldname": "print_signature",
         "label": "Print Signature",
         "fieldtype": "Link",
         "options": "Signature",
         "reqd": 1,
         "default": "Dinberu Getachew",
-        "insert_after": "letter_head",
-    },
-    {
-        "fieldname": "print_show_signature",
-        "label": "Show Signature on Print",
-        "fieldtype": "Check",
-        "default": "1",
-        "insert_after": "print_terms",
+        "insert_after": "print_show_signature",
     },
 ]
 
@@ -149,6 +162,7 @@ def setup_print_custom_fields():
     spec = {
         "group_same_items": [
             "print_options_sep_1",
+            "print_heading_table",
             "print_show_section_subtotals",
             "print_show_number_of_days",
             "print_show_number_of_pages",
@@ -156,10 +170,12 @@ def setup_print_custom_fields():
         ],
         "language": [
             "print_options_sep_2",
+            "print_heading_blocks",
             "print_without_vat",
             "print_payment_terms",
             "print_terms",
             "print_show_signature",
+            "print_signature",
         ],
     }
     for dt in ["Quotation", "Sales Order"]:
