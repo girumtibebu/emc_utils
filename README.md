@@ -198,6 +198,10 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ## Changelog
 
+### 1.2.2
+
+- Fix: ALT Quotation master failed to print ('pctx is undefined') because the context was not set at the top of the template.
+
 ### 1.2.1
 
 - ALT masters now use the Alter layout: the Alter Space design for Quotation and the Alter Sales Order design (staging) for Sales Order, with the same toggles, sections and signature logic as EMC.
