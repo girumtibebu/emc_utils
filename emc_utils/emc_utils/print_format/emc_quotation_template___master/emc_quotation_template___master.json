@@ -25,7 +25,7 @@
  "name": "EMC Quotation Template - Master",
  "page_number": "Hide",
  "paper_size": null,
- "pdf_generator": "wkhtmltopdf",
+ "pdf_generator": "chrome",
  "preview_image": null,
  "print_designer": 0,
  "print_designer_after_table": null,

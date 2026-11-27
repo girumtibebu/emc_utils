@@ -198,6 +198,10 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ## Changelog
 
+### 1.2.6
+
+- The four master templates generate PDFs with Chrome instead of wkhtmltopdf.
+
 ### 1.2.5
 
 - Print Signature no longer has a fixed default. Company defaults (letter head, signature) are set in the database.
