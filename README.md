@@ -36,7 +36,7 @@ emc_utils/
 │   ├── sales_order.js             # Sales Order form script hook & save-before-print interception
 │   └── sections.css               # High-contrast Espresso badges, section rows, and inputs
 │
-├── print_designer/                 # 🖨️ Frappe v16 Print Format Designer Integration
+├── print_format/                   # 🖨️ Four master print templates (EMC and ALT)
 │   ├── __init__.py                 # Public domain exports
 │   ├── setup.py                   # Automated installer/updater for sample print formats
 │   ├── quotation_sections.json    # Visual designer format_data layout (header totals)
@@ -130,151 +130,14 @@ Designed for ERPNext environments running multiple subsidiaries, holding compani
 
 ---
 
-## Feature 3: Frappe v16 Print Format Designer Integration
+## Feature 3: Print Templates
 
-`emc_utils` provides complete out-of-the-box compatibility with the new visual **Print Format Designer** introduced in Frappe v16 (`print_format_builder_beta: 1`).
+Four master templates, each honouring the print check boxes on Quotation and Sales Order:
 
-### 1. The Pre-Configured Sample Format: `Quotation with Sections`
-During app installation and migration (`bench migrate`), `emc_utils` installs a standard sample format:
-- **DocType:** `Quotation`
-- **Format Name:** `Quotation with Sections`
-- **Builder Engine:** Beta Print Format Builder (`print_format_builder_beta = 1`)
-- **Mode:** `standard = "No"` (allowing direct visual edits and saves without requiring Frappe developer mode).
+- **EMC Quotation Template - Master** and **EMC Sales Order Template - Master** (EMC branding).
+- **ALT Quotation Template - Master** and **ALT Sales Order Template - Master** (ALT branding, same logic).
 
-### 2. Sample Print Formats for Print Format Designer (v16.50+)
-
-`emc_utils` provides 4 sample print formats ready for the new **Frappe v16 Print Format Designer**:
-- **`Quotation with Sections`**: Classical layout with inline total pill on the section bar (`sec-total-position: header`).
-- **`Quotation with Section Subtotals`**: Classical layout with dedicated subtotal summary rows at the end of each section aligned with the Amount column (`sec-total-position: bottom`).
-- **`Quotation Modern with Sections`**: Direct non-standard clone of ERPNext's official **Quotation Modern** layout with executive header total pills.
-- **`Quotation Modern with Subtotals`**: Minimalist Modern layout featuring dedicated section subtotal rows and clean accounting alignment.
-
-All formats are non-standard (`standard: "No"`), allowing you to visually drag, drop, reorder fields, change column widths, and customize fonts and colors directly in Print Format Designer without developer mode or file overrides.
-
-To customize or review the layout visually:
-1. Navigate to **Print Format List** in Desk.
-2. Open any of the 4 formats above.
-3. Click the **Edit Format** button.
-4. You will see the full visual drag-and-drop designer canvas:
-   - Drag and drop fields (Company logo, Customer address, Terms and Conditions).
-   - Reorder or add child table columns.
-   - Adjust page sizes (A4, Letter) and margins.
-
-### 3. Customizing Section Styling in Print Format Designer
-Configure section visual styling directly from the **Child Table > Style > Custom CSS** field in Print Format Designer. Both shorthand (`sec-`) and standard CSS custom property (`--sec-`) formats are supported:
-
-#### Section Custom CSS Options Reference
-
-| Option | Shorthand | CSS Variable | Values / Description |
-| :--- | :--- | :--- | :--- |
-| **Row Background** | `sec-bg:` | `--sec-bg:` | Color hex / rgb (e.g. `#eff6ff`) |
-| **Row Border** | `sec-border:` | `--sec-border:` | Top & bottom border color (e.g. `#bfdbfe`) |
-| **Border Width** | `sec-border-width:` | `--sec-border-width:` | Border thickness (e.g. `1.5px`) |
-| **Title Color** | `sec-title-color:` | `--sec-title-color:` | Text color of section title (e.g. `#1e40af`) |
-| **Title Size** | `sec-title-size:` | `--sec-title-size:` | Font size (e.g. `14px`, `1rem`) |
-| **Title Weight** | `sec-title-weight:` | `--sec-title-weight:` | Font weight (`normal`, `600`, `700`, `bold`) |
-| **Title Transform** | `sec-title-transform:` | `--sec-title-transform:` | Text casing (`uppercase`, `capitalize`, `none`) |
-| **Title Visibility** | `sec-title:` / `sec-title-display:` | `--sec-title-display:` | `show` (default) or `none` to hide section title text |
-| **Section Header Visibility** | `sec-display:` | `--sec-display:` | `show` (default) or `none` to hide section header rows |
-| **Row Number Visibility** | `sec-no-display:` / `sec-no:` | `--sec-no-display:` | `none` (default: skip numbering on section rows) or `show` |
-| **Item Numbering Mode** | `sec-item-no:` | `--sec-item-no:` | `continuous` (default: 1, 2, 3, 4...), `section` (reset per section 1, 2...), or `original` (database idx) |
-| **Badge Visibility** | `sec-badge:` / `sec-badge-display:` | `--sec-badge-display:` | `show` (default) or `none` to hide the `[SECTION]` chip |
-| **Badge Background** | `sec-badge-bg:` | `--sec-badge-bg:` | Badge pill background color (e.g. `#2563eb`) |
-| **Badge Color** | `sec-badge-color:` | `--sec-badge-color:` | Badge text color (e.g. `#ffffff`) |
-| **Badge Size** | `sec-badge-size:` | `--sec-badge-size:` | Badge font size (e.g. `8.5px`) |
-| **Badge Radius** | `sec-badge-radius:` | `--sec-badge-radius:` | Pill border radius (e.g. `4px`) |
-| **Section Total Position** | `sec-total-position:` | `--sec-total-position:` | `bottom` (dedicated row), `header` (inline on section bar), `both`, or `none` |
-| **Section Total Price** | `sec-total:` / `sec-total-display:` | `--sec-total-display:` | Set to `none` to hide section total, or `show` to display |
-| **Section Total Label** | `sec-total-label:` | `--sec-total-label-display:` | Set to `none` to hide "Section Total:" label and show amount only |
-| **Section Total Color** | `sec-total-color:` | `--sec-total-color:` | Total price text color (e.g. `#0f172a`, `#1e40af`) |
-| **Section Total Background** | `sec-total-bg:` | `--sec-total-bg:` | Pill/badge background color (e.g. `#dbeafe`) |
-| **Section Total Size** | `sec-total-size:` | `--sec-total-size:` | Total price font size (e.g. `12.5px`) |
-| **Subtotal Row Background** | `sec-subtotal-bg:` | `--sec-subtotal-bg:` | Background color of dedicated subtotal row (e.g. `#f8fafc`) |
-| **Subtotal Row Top Border** | `sec-subtotal-border:` | `--sec-subtotal-border:` | Top border color of dedicated subtotal row |
-| **Subtotal Row Bottom Border** | `sec-subtotal-border-bottom:` | `--sec-subtotal-border-bottom:` | Bottom border style (e.g. `2px solid #0f172a`, `3px double #94a3b8`) |
-| **Subtotal Row Color** | `sec-subtotal-color:` | `--sec-subtotal-color:` | Text and amount color of dedicated subtotal row |
-| **Subtotal Row Size** | `sec-subtotal-size:` | `--sec-subtotal-size:` | Font size of subtotal title (e.g. `13px`) |
-| **Subtotal Title Visibility** | `sec-subtotal-title:` / `sec-subtotal-title-display:` | `--sec-subtotal-title-display:` | `show` (default) or `none` to hide subtotal title text (e.g. "Screen") |
-| **Subtotal Badge Visibility** | `sec-subtotal-badge:` / `sec-subtotal-badge-display:` | `--sec-subtotal-badge-display:` | `show` (default) or `none` to hide `[SUBTOTAL]` pill badge |
-| **Subtotal Badge Background** | `sec-subtotal-badge-bg:` | `--sec-subtotal-badge-bg:` | Subtotal pill badge background color |
-| **Subtotal Badge Color** | `sec-subtotal-badge-color:` | `--sec-subtotal-badge-color:` | Subtotal pill badge text color |
-| **Subtotal Amount Size** | `sec-subtotal-amount-size:` | `--sec-subtotal-amount-size:` | Subtotal amount font size (e.g. `13.5px`) |
-
-#### Ready-to-Use Presets
-
-**1. Title-Only Row (No Badge, No Row Number, Full-Width Banner)**
-```css
-border: 1px solid #e5e7eb; padding: 6px;
-sec-bg: #eff6ff;
-sec-border: #bfdbfe;
-sec-badge-display: none;
-sec-no-display: none;
-sec-title-color: #1e40af;
-sec-title-size: 14px;
-sec-title-weight: 700;
-```
-
-**2. Modern Contrast (Pill Badge & Row Number)**
-```css
-sec-bg: #f8fafc;
-sec-border: #cbd5e1;
-sec-badge-bg: #0f172a;
-sec-badge-color: #ffffff;
-sec-title-color: #0f172a;
-sec-title-size: 13.5px;
-```
-
-**3. Minimalist Line (White Background, Border-Only)**
-```css
-sec-bg: #ffffff;
-sec-border: #e2e8f0;
-sec-badge-display: none;
-sec-no-display: none;
-sec-title-color: #111827;
-sec-title-size: 13.5px;
-```
-
-**4. Dedicated Subtotal Row (Bottom of Section)**
-```css
-sec-bg: #f8fafc;
-sec-border: #cbd5e1;
-sec-title-color: #0f172a;
-sec-total-position: bottom;
-sec-subtotal-bg: #f1f5f9;
-sec-subtotal-color: #0f172a;
-```
-
-#### Built-in Print Protection & Failsafe
-- **Zero Financial Values Blanked:** The Python `before_print` hook suppresses quantities (`0`), rates (`Br 0.00`), amounts (`Br 0.00`), and units on section rows before Jinja renders the table.
-- **Server-Side CSS Injection:** When custom section styles are detected, styles are injected into the document `<head>` stylesheet, ensuring section rows expand cleanly without breaking merged column layouts (`Item + Description`).
-
-### 4. Compatibility with Traditional Jinja Print Formats
-If you maintain classic or custom Jinja print templates, you can format section rows using `frappe.is_section_row(row)`:
-```html
-<tbody>
-  {% for item in doc.items %}
-    {% if frappe.is_section_row(item) %}
-      <tr class="section-row" style="background:#f1f5f9; font-weight:bold;">
-        <td colspan="6" style="padding:10px;">
-          <span class="badge" style="background:#000; color:#fff; padding:2px 6px; border-radius:4px;">SECTION</span>
-          {{ item.section_title or item.item_name }}
-        </td>
-      </tr>
-    {% else %}
-      <tr>
-        <td>{{ item.idx }}</td>
-        <td>{{ item.item_name }}</td>
-        <td>{{ item.item_code }}</td>
-        <td>{{ item.qty }}</td>
-        <td>{{ item.get_formatted("rate") }}</td>
-        <td>{{ item.get_formatted("amount") }}</td>
-      </tr>
-    {% endif %}
-  {% endfor %}
-</tbody>
-```
-
----
+Each honours Print Payment Terms, Print Terms and Conditions, Show Signature on Print and Print Without VAT.
 
 ## Installation & Setup
 
@@ -334,6 +197,13 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 ---
 
 ## Changelog
+
+### 1.2.0
+
+- Print formats reduced to the four master templates: EMC and ALT, Quotation and Sales Order.
+- Removed the other EMC template variants, the Decor and Alter formats, the Modern/Sections samples and the sample installer (`print_designer/`).
+- New ALT Quotation and Sales Order masters, cloned from the EMC masters with ALT branding.
+- Existing live print format records are not deleted by the app update.
 
 ### 1.1.0
 
