@@ -214,15 +214,8 @@ def get_print_context(doc):
     else:
         show_days = False
 
-    # 4. Pages column
-    if doc.get("print_show_number_of_pages"):
-        show_pages = True
-    elif settings and getattr(settings, "default_show_pages", 0):
-        show_pages = True
-    elif (settings and getattr(settings, "auto_detect_columns", 1)) or settings is None:
-        show_pages = has_pages
-    else:
-        show_pages = False
+    # 4. Pages column: the document's toggle decides, off by default
+    show_pages = bool(doc.get("print_show_number_of_pages"))
 
     # 5. Hide Qty
     if doc.get("print_hide_qty") is not None and doc.get("print_hide_qty"):

@@ -198,6 +198,10 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ## Changelog
 
+### 1.2.7
+
+- Pages column follows its toggle (Show Pages Column) and is off by default. It is no longer shown just because items have pages.
+
 ### 1.2.6
 
 - The four master templates generate PDFs with Chrome instead of wkhtmltopdf.
