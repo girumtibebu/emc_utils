@@ -48,6 +48,8 @@ SCOPED_DOCTYPES = (
 	"Leave Application",
 	"Attendance",
 	"Salary Slip",
+	# print formats are shown per company; unassigned ones stay visible to all
+	"Print Format",
 )
 
 PRINT_FORMAT_DOCTYPES = {

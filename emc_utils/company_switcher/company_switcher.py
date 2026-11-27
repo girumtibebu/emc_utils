@@ -25,6 +25,9 @@ from frappe import _
 
 from emc_utils.constants import PRINT_FORMAT_DOCTYPES, SCOPED_DOCTYPES
 
+# Doctypes whose records with no company stay visible in every scope
+NULL_IS_SHARED = {"Print Format"}
+
 SCOPE_KEY = "company_switcher_scope"
 
 
@@ -149,7 +152,10 @@ def get_permission_query_conditions(user=None, doctype=None):
 		return ""
 
 	quoted = ", ".join(frappe.db.escape(name) for name in scope)
-	return f"`tab{doctype}`.`company` in ({quoted})"
+	clause = f"`tab{doctype}`.`company` in ({quoted})"
+	if doctype in NULL_IS_SHARED:
+		clause = f"({clause} or `tab{doctype}`.`company` is null or `tab{doctype}`.`company` = '')"
+	return clause
 
 
 def boot_session(bootinfo):

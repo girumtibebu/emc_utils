@@ -198,6 +198,11 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ## Changelog
 
+### 1.2.4
+
+- Print formats are scoped by company. A print format with a Company shows only to users whose scope includes that company. Formats with no company stay visible to everyone.
+- The four master templates are assigned: EMC masters to Eternal Media and Communication, ALT masters to Alter Styling and Decor.
+
 ### 1.2.3
 
 - ALT Quotation master rebuilt on the Decor design (bold, brand-coloured, company logo and footer from the Company record), with the EMC print logic: sections and subtotals, hidden quantity and days, VAT, payment terms, terms, and the signature chosen on the document.
