@@ -198,6 +198,11 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ## Changelog
 
+### 1.2.3
+
+- ALT Quotation master rebuilt on the Decor design (bold, brand-coloured, company logo and footer from the Company record), with the EMC print logic: sections and subtotals, hidden quantity and days, VAT, payment terms, terms, and the signature chosen on the document.
+- Company print branding fields (Print Logo, Brand Color, Print Footer) are now created by the app.
+
 ### 1.2.2
 
 - Fix: ALT Quotation master failed to print ('pctx is undefined') because the context was not set at the top of the template.
