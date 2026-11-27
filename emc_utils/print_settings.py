@@ -96,7 +96,7 @@ _PRINT_FIELDS = [
         "fieldtype": "Link",
         "options": "Signature",
         "reqd": 1,
-        "default": "Dinberu Getachew",
+        "default": "",
         "insert_after": "print_show_signature",
     },
 ]

@@ -198,6 +198,10 @@ Thanks to the modular architecture, adding a new customization (e.g. `barcode_sc
 
 ## Changelog
 
+### 1.2.5
+
+- Print Signature no longer has a fixed default. Company defaults (letter head, signature) are set in the database.
+
 ### 1.2.4
 
 - Print formats are scoped by company. A print format with a Company shows only to users whose scope includes that company. Formats with no company stay visible to everyone.
